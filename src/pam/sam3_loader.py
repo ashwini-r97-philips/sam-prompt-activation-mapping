@@ -51,7 +51,9 @@ def _import_sam3():
     try:
         from sam3.model_builder import build_sam3_image_model  # type: ignore[import-untyped]
         from sam3.model.sam3_image_processor import Sam3Processor  # type: ignore[import-untyped]
-    except ImportError:
+    except ImportError as exc:
+        # Show the real error so missing transitive deps are visible.
+        print(f"Import failed: {exc}\n", file=sys.stderr)
         print(_SAM3_INSTALL_MSG, file=sys.stderr)
         raise SystemExit(1)
     return build_sam3_image_model, Sam3Processor
