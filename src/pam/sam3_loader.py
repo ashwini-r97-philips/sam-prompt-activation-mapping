@@ -119,5 +119,5 @@ def run_inference(
     image = Image.open(image_path).convert("RGB")
     with torch.autocast(device_type=device.split(":")[0], dtype=torch.bfloat16):
         state = processor.set_image(image)
-        output = processor.set_text_prompt(state=state, prompt=prompt)
-    return output
+        state = processor.set_text_prompt(state=state, prompt=prompt)
+    return state

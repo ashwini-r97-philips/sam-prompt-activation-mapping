@@ -6,6 +6,75 @@ This repository visualises, for a given image and text prompt, *where each promp
 
 ---
 
+## ⚠️ Open question: how should we aggregate attention?
+
+> *Multi-layer attention capture — hook all 6 encoder `cross_attn_image` layers, average the attention across layers — should we be averaging the attention?? I feel like that causes the heatmap to diffuse more. Averaging across layers and across heads feels like something that would cause the heatmap focus to diffuse more. Also there are multiple masks getting generated right, wouldn't we want to get the attention for each of the mask? Or each of the prompt? What should we focus on?*
+
+### Analysis
+
+The concern is correct. There are three distinct aggregation problems, each requiring a different approach.
+
+**1. Layer aggregation (6 encoder layers)**
+
+Each layer refines the image features with prompt information. Early layers attend broadly, later layers attend sharply. Averaging dilutes the sharp late-layer signals with the diffuse early-layer ones. The current approach saves **per-layer heatmaps** so each layer's contribution is visible individually, plus a **layer-max** aggregate (taking the sharpest signal at each spatial position across layers) instead of mean.
+
+**2. Head aggregation (8 heads per layer)**
+
+Different heads specialise on different aspects (colour, shape, position, etc). Averaging across heads merges unrelated spatial patterns. The current approach saves **per-head heatmaps** for each layer, alongside the head-mean and head-max reductions.
+
+**3. Per-detection vs shared attention**
+
+This is an architectural constraint. The 6 encoder `cross_attn_image` layers produce a **shared** prompt-conditioned image representation — all detections emerge from the same conditioned features. The per-detection specialisation happens in the **decoder**:
+
+| Module | What attends to what | Per-detection? |
+|---|---|---|
+| `transformer.encoder.layers.*.cross_attn_image` | Image positions → prompt tokens (text + geometry) | No — shared |
+| `transformer.decoder.layers.*.cross_attn` | Object queries → image features | **Yes** — each query becomes one detection |
+| `transformer.decoder.layers.*.ca_text` | Object queries → text features | **Yes** — each query attends to text differently |
+
+For per-detection attention maps (e.g. "where did detection #3 look in the image?"), the decoder `cross_attn` is the right target. For "how did the text prompt condition the image features globally?", the encoder `cross_attn_image` is the right target.
+
+**4. Per-token heatmaps vs combined prompt attention**
+
+> *Why are we doing this per prompt token? When we say "yellow school bus" aren't we expecting all the tokens to contribute to the end result? Should we be aggregating across all prompt tokens (including the ones that are not text)?*
+
+This is a valid concern, but the naive fix — summing attention across all prompt tokens — doesn't work, and the reason is instructive.
+
+In the encoder cross-attention, each image position distributes its attention across all 33 prompt tokens via softmax. **The attention weights at every image position already sum to 1.0.** Summing across all prompt tokens gives a uniform map of ones — no spatial information at all.
+
+What IS meaningful is to sum across **only the text tokens** (3 out of 33). Since the softmax distributes attention across all 33 tokens, the fraction going to the 3 text tokens varies by image position. This gives a **text influence fraction** map:
+
+$$
+\text{TextFraction}[i] = \sum_{j \in \text{text}} A[i, j]
+$$
+
+where $A[i,j]$ is the softmax attention from image position $i$ to prompt token $j$.
+
+- Image positions where `TextFraction ≈ 3/33 ≈ 0.09` attend to text tokens about as much as to geometry tokens (uniform baseline).
+- Image positions where `TextFraction >> 0.09` are disproportionately influenced by the text prompt.
+- Image positions where `TextFraction << 0.09` are dominated by geometry/visual prompt tokens.
+
+This "text vs geometry influence" map is a different and complementary view to per-token heatmaps. Per-token maps show **which text token** matters where; the combined text fraction map shows **whether text matters at all** at each position.
+
+There is also a richer aggregation: instead of summing raw attention weights, compute the **actual information flow** through text tokens — the L2 norm of the text tokens' contribution to the cross-attention output:
+
+$$
+\text{TextFlow}[i] = \left\| \sum_{j \in \text{text}} A[i,j] \cdot V_j \right\|_2
+$$
+
+This captures not just how much attention text gets, but how much information it actually injects. A token can receive high attention but have a near-zero value vector (no information flows). `TextFlow` accounts for both.
+
+Neither of these invalidates per-token heatmaps — they answer different questions:
+
+| View | Question |
+|---|---|
+| Per-token heatmap | "Where does the word *yellow* specifically attend?" |
+| Text fraction map | "Which image regions are text-influenced vs geometry-influenced?" |
+| Text flow map | "Where does text actually inject information into the features?" |
+| Per-head heatmap | "What does each attention head specialise on?" |
+
+---
+
 ## What this repo does
 
 | Capability | Status |

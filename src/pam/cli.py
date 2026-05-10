@@ -19,6 +19,7 @@ Two modes
 from __future__ import annotations
 
 import argparse
+import math as _math
 import sys
 from pathlib import Path
 
@@ -190,6 +191,73 @@ def cmd_list_modules(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Save detection / segmentation output
+# ---------------------------------------------------------------------------
+
+
+def _save_detection_output(state: dict, image_path: str, output_dir: str) -> None:
+    """Save SAM 3 detection output: bounding boxes, masks, and scores."""
+    import json
+    import numpy as np
+    from PIL import Image as PILImage
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    boxes = state.get("boxes")
+    scores = state.get("scores")
+    masks = state.get("masks")
+
+    if boxes is None or len(boxes) == 0:
+        print("  detection: no objects detected.")
+        return
+
+    boxes_np = boxes.cpu().float().numpy()
+    scores_np = scores.cpu().float().numpy()
+
+    print(f"  detection: {len(boxes_np)} object(s) found")
+
+    # Save detection JSON.
+    det_info = {
+        "image": str(image_path),
+        "num_detections": len(boxes_np),
+        "detections": [],
+    }
+    for i in range(len(boxes_np)):
+        det_info["detections"].append({
+            "box_xyxy": boxes_np[i].tolist(),
+            "score": float(scores_np[i]),
+        })
+    det_json_path = out_dir / "detections.json"
+    with open(det_json_path, "w") as f:
+        json.dump(det_info, f, indent=2)
+    print(f"  detections JSON     : {det_json_path}")
+
+    # Draw boxes on the original image.
+    image = PILImage.open(image_path).convert("RGB")
+    from PIL import ImageDraw, ImageFont
+    draw = ImageDraw.Draw(image)
+    for i in range(len(boxes_np)):
+        x0, y0, x1, y1 = boxes_np[i]
+        score = float(scores_np[i])
+        draw.rectangle([x0, y0, x1, y1], outline="lime", width=3)
+        draw.text((x0 + 4, y0 + 4), f"{score:.2f}", fill="lime")
+    det_img_path = out_dir / "detection_boxes.png"
+    image.save(det_img_path)
+    print(f"  detection image     : {det_img_path}")
+
+    # Save binary masks.
+    if masks is not None and len(masks) > 0:
+        masks_np = masks.cpu().numpy()  # [N, 1, H, W] bool
+        for i in range(len(masks_np)):
+            mask_2d = masks_np[i, 0]  # [H, W]
+            mask_img = PILImage.fromarray((mask_2d * 255).astype(np.uint8))
+            mask_path = out_dir / f"mask_{i:02d}.png"
+            mask_img.save(mask_path)
+        print(f"  masks saved         : {len(masks_np)} mask(s)")
+
+
+# ---------------------------------------------------------------------------
 # Mode: main mapping pipeline
 # ---------------------------------------------------------------------------
 
@@ -201,7 +269,6 @@ def cmd_map(args: argparse.Namespace) -> None:
     from .attention_capture import (
         AttentionCapture,
         discover_attention_modules,
-        select_attention_module,
         _module_summary,
     )
     from .effective_attention import compute_effective_attention
@@ -224,7 +291,7 @@ def cmd_map(args: argparse.Namespace) -> None:
     print(f"Loading SAM 3 image model on {args.device} …")
     model, processor = load_sam3_image_model(device=args.device)
 
-    # -- discover & select attention module ----------------------------------
+    # -- discover cross-attention modules ------------------------------------
     all_candidates = discover_attention_modules(model, filter_text=args.module_filter)
     candidates = all_candidates
 
@@ -232,103 +299,82 @@ def cmd_map(args: argparse.Namespace) -> None:
     if args.module_filter is None and args.module_name is None:
         candidates = _auto_filter_candidates(all_candidates)
 
-    selected_name, selected_mod = select_attention_module(
-        candidates,
-        module_name=args.module_name,
-        layer_index=args.layer_index,
-    )
-    print(f"Selected module: {_module_summary(selected_name, selected_mod)}")
+    # Select ALL matching encoder cross-attn modules (multi-layer).
+    if args.module_name is not None:
+        # User explicitly selected one module — honour that.
+        from .attention_capture import select_attention_module
+        sel_name, sel_mod = select_attention_module(
+            candidates, module_name=args.module_name, layer_index=args.layer_index,
+        )
+        selected_modules = [(sel_name, sel_mod)]
+    else:
+        selected_modules = candidates
 
-    # -- register hooks & run inference -------------------------------------
-    capture = AttentionCapture(selected_name, selected_mod)
-    capture.register()
+    print(f"Hooking {len(selected_modules)} cross-attention module(s):")
+    for name, mod in selected_modules:
+        print(f"  {_module_summary(name, mod)}")
+
+    # -- register hooks on ALL selected modules & run inference --------------
+    captures = []
+    for name, mod in selected_modules:
+        cap = AttentionCapture(name, mod)
+        cap.register()
+        captures.append(cap)
 
     print(f"Running inference on {args.image} with prompt: {args.prompt!r} …")
     try:
-        _output = run_inference(processor, args.image, args.prompt, args.device)
+        state = run_inference(processor, args.image, args.prompt, args.device)
     finally:
-        capture.remove()  # always clean up hooks
+        for cap in captures:
+            cap.remove()
 
-    captured = capture.result()
+    # -- save detection output -----------------------------------------------
+    _save_detection_output(state, args.image, args.output_dir)
 
-    # -- validate capture ----------------------------------------------------
-    all_warnings: list[str] = list(captured.warnings)
+    # -- aggregate attention across layers -----------------------------------
+    all_warnings: list[str] = []
+    layer_attns = []  # each entry: [B, H, N_prompt, N_image]
+    layer_names = []
+    first_captured = None
 
-    if captured.raw_attention is None:
-        print("ERROR: Could not capture attention weights.", file=sys.stderr)
+    for cap in captures:
+        captured = cap.result()
+        if captured.raw_attention is None:
+            all_warnings.append(f"Layer {cap.module_name}: no attention captured.")
+            continue
+        if first_captured is None:
+            first_captured = captured
+
+        raw = captured.raw_attention  # [B, H, T_q, T_kv]
+        all_warnings.extend(captured.warnings)
+
+        # Detect and transpose image→prompt orientation.
+        dim_q, dim_kv = raw.shape[2], raw.shape[3]
+        sq_q = _math.isqrt(dim_q)
+        if sq_q * sq_q == dim_q and dim_q > dim_kv:
+            raw = raw.transpose(2, 3)  # → [B, H, N_prompt, N_image]
+            raw = raw / (raw.sum(dim=-1, keepdim=True) + 1e-8)
+        layer_attns.append(raw)
+        layer_names.append(cap.module_name)
+
+    if not layer_attns:
+        print("ERROR: No attention captured from any layer.", file=sys.stderr)
         for w in all_warnings:
             print(f"  WARNING: {w}", file=sys.stderr)
-        print(
-            "\nRun with --list-attention-modules and try a different "
-            "--module-name or --module-filter.",
-            file=sys.stderr,
-        )
         raise SystemExit(1)
 
-    if captured.values is None:
-        print(
-            "WARNING: Value vectors not captured. "
-            "Effective attention will be skipped.",
-            file=sys.stderr,
-        )
+    num_layers = len(layer_attns)
+    num_heads = layer_attns[0].shape[1]
+    num_prompt_tokens = layer_attns[0].shape[2]
+    num_image_tokens = layer_attns[0].shape[3]
 
-    raw_attn = captured.raw_attention  # [B, H, T_q, T_kv]
-    values = captured.values  # [B, H, T_kv, D_head] or None
+    # Layer-max aggregate: sharpest signal at each position across layers.
+    stacked = torch.stack(layer_attns, dim=0)  # [L, B, H, T_prompt, T_image]
+    layer_max_attn = stacked.max(dim=0).values  # [B, H, T_prompt, T_image]
 
-    print(f"  raw attention shape : {list(raw_attn.shape)}")
-    if values is not None:
-        print(f"  value tensor shape  : {list(values.shape)}")
-
-    # -- detect attention orientation ----------------------------------------
-    # In SAM 3's DETR encoder the image tokens are the *query* and the
-    # prompt tokens are the *key/value*, giving shape
-    #   [B, H, N_image, N_prompt].
-    # We need the transpose: [B, H, N_prompt, N_image] so that each row
-    # is a prompt token's attention distribution over image positions.
-    #
-    # Heuristic: if dim-2 >> dim-3 AND dim-2 is a perfect square (spatial
-    # grid), the attention is image→prompt and we should transpose.
-    dim_q, dim_kv = raw_attn.shape[2], raw_attn.shape[3]
-    import math as _math
-    sq_q = _math.isqrt(dim_q)
-    sq_kv = _math.isqrt(dim_kv)
-    transposed = False
-
-    if sq_q * sq_q == dim_q and dim_q > dim_kv:
-        # dim_q looks like a spatial grid (e.g. 72²=5184) and dim_kv is
-        # much smaller (prompt tokens).  Transpose.
-        print(f"  NOTE: detected image→prompt attention ({dim_q} queries, "
-              f"{dim_kv} keys). Transposing to prompt→image.")
-        raw_attn = raw_attn.transpose(2, 3)  # [B, H, N_prompt, N_image]
-        # The transposed rows are NOT valid probability distributions (they
-        # are columns of the original softmax).  Re-normalise so each
-        # prompt token's attention over image positions sums to 1.
-        raw_attn = raw_attn / (raw_attn.sum(dim=-1, keepdim=True) + 1e-8)
-        transposed = True
-        all_warnings.append(
-            "Attention was transposed from image→prompt to prompt→image "
-            "and re-normalised.  Values for effective-attention are from "
-            "the original (untransposed) direction."
-        )
-
-    num_prompt_tokens = raw_attn.shape[2]
-    num_image_tokens = raw_attn.shape[3]
-
-    # -- effective attention -------------------------------------------------
-    if values is not None and not transposed:
-        eff_attn = compute_effective_attention(raw_attn, values)
-    elif values is not None and transposed:
-        # With transposed attention the value vectors were for the prompt
-        # (original KV side), not the image.  Effective attention in the
-        # traditional sense doesn't apply.  Fall back to raw.
-        eff_attn = raw_attn
-        all_warnings.append(
-            "Effective attention skipped: value vectors correspond to the "
-            "prompt (original KV), not image positions."
-        )
-    else:
-        eff_attn = raw_attn  # fallback: just use raw
-        all_warnings.append("Using raw attention as effective (no values captured).")
+    print(f"  layers captured     : {num_layers}")
+    print(f"  heads per layer     : {num_heads}")
+    print(f"  per-layer shape     : {list(layer_attns[0].shape)}")
 
     # -- token labels --------------------------------------------------------
     token_labels = get_token_labels(
@@ -343,26 +389,93 @@ def cmd_map(args: argparse.Namespace) -> None:
 
     # -- load image for visualisation ----------------------------------------
     image = PILImage.open(args.image).convert("RGB")
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    # -- save heatmaps -------------------------------------------------------
+    num_tokens_to_save = num_prompt_tokens
+    if args.max_tokens is not None:
+        num_tokens_to_save = min(num_tokens_to_save, args.max_tokens)
+
+    # -- save per-layer, per-head heatmaps -----------------------------------
     print(f"Saving outputs to {args.output_dir} …")
-    saved_files = save_token_heatmaps(
-        image=image,
-        raw_attention=raw_attn,
-        effective_attention=eff_attn,
-        token_labels=token_labels,
-        output_dir=args.output_dir,
-        head_reduction=args.head_reduction,
-        alpha=args.alpha,
-        no_overlay=args.no_overlay,
-        max_tokens=args.max_tokens,
-        resize_long_side=args.resize_long_side,
-        spatial_grid=spatial_grid,
+    from .visualization import (
+        make_attention_overlay,
+        _normalise,
     )
+    import numpy as np
 
-    for entry in saved_files:
-        print(f"  [{entry['label']}] raw={entry.get('raw_path', '?')}  "
-              f"eff={entry.get('effective_path', '?')}")
+    saved_files: list[dict] = []
+
+    for layer_idx, (layer_name, layer_attn) in enumerate(zip(layer_names, layer_attns)):
+        layer_dir = output_dir / f"layer_{layer_idx}"
+        layer_dir.mkdir(parents=True, exist_ok=True)
+
+        for t_idx in range(num_tokens_to_save):
+            label = token_labels[t_idx] if t_idx < len(token_labels) else f"token_{t_idx:02d}"
+            safe_label = label.replace(" ", "_").replace("/", "_")
+
+            # --- per-head heatmaps ---
+            head_dir = layer_dir / f"token_{t_idx:02d}_{safe_label}_heads"
+            head_dir.mkdir(parents=True, exist_ok=True)
+
+            for h_idx in range(num_heads):
+                h_1d = layer_attn[0, h_idx, t_idx, :].cpu().float().numpy()
+                if spatial_grid is not None:
+                    h_2d = _normalise(h_1d.reshape(spatial_grid))
+                    overlay = make_attention_overlay(image, h_2d, args.alpha)
+                    overlay.save(head_dir / f"head_{h_idx}.png")
+
+            # --- head-mean heatmap ---
+            mean_1d = layer_attn[0, :, t_idx, :].mean(dim=0).cpu().float().numpy()
+            if spatial_grid is not None:
+                mean_2d = _normalise(mean_1d.reshape(spatial_grid))
+                overlay = make_attention_overlay(image, mean_2d, args.alpha)
+                mean_path = layer_dir / f"token_{t_idx:02d}_{safe_label}_head_mean.png"
+                overlay.save(mean_path)
+
+            # --- head-max heatmap ---
+            max_1d = layer_attn[0, :, t_idx, :].max(dim=0).values.cpu().float().numpy()
+            if spatial_grid is not None:
+                max_2d = _normalise(max_1d.reshape(spatial_grid))
+                overlay = make_attention_overlay(image, max_2d, args.alpha)
+                max_path = layer_dir / f"token_{t_idx:02d}_{safe_label}_head_max.png"
+                overlay.save(max_path)
+
+            saved_files.append({
+                "token_index": t_idx,
+                "label": label,
+                "layer": layer_idx,
+                "layer_name": layer_name,
+                "head_mean_path": str(mean_path) if spatial_grid else None,
+                "head_max_path": str(max_path) if spatial_grid else None,
+                "per_head_dir": str(head_dir),
+            })
+
+        print(f"  layer {layer_idx} ({layer_name.split('.')[-2]}): "
+              f"{num_tokens_to_save} tokens × {num_heads} heads")
+
+    # --- layer-max aggregate heatmaps ---
+    agg_dir = output_dir / "layer_max"
+    agg_dir.mkdir(parents=True, exist_ok=True)
+    for t_idx in range(num_tokens_to_save):
+        label = token_labels[t_idx] if t_idx < len(token_labels) else f"token_{t_idx:02d}"
+        safe_label = label.replace(" ", "_").replace("/", "_")
+
+        # head-mean of layer-max
+        agg_1d = layer_max_attn[0, :, t_idx, :].mean(dim=0).cpu().float().numpy()
+        if spatial_grid is not None:
+            agg_2d = _normalise(agg_1d.reshape(spatial_grid))
+            overlay = make_attention_overlay(image, agg_2d, args.alpha)
+            overlay.save(agg_dir / f"token_{t_idx:02d}_{safe_label}_head_mean.png")
+
+        # head-max of layer-max
+        agg_max_1d = layer_max_attn[0, :, t_idx, :].max(dim=0).values.cpu().float().numpy()
+        if spatial_grid is not None:
+            agg_max_2d = _normalise(agg_max_1d.reshape(spatial_grid))
+            overlay = make_attention_overlay(image, agg_max_2d, args.alpha)
+            overlay.save(agg_dir / f"token_{t_idx:02d}_{safe_label}_head_max.png")
+
+    print(f"  layer_max aggregate : {num_tokens_to_save} tokens")
 
     # -- debug artefacts -----------------------------------------------------
     if args.save_debug:
@@ -371,13 +484,13 @@ def cmd_map(args: argparse.Namespace) -> None:
             output_dir=args.output_dir,
             prompt=args.prompt,
             image_path=args.image,
-            selected_module_name=selected_name,
-            selected_module_repr=repr(selected_mod),
+            selected_module_name=layer_names,
+            selected_module_repr=[repr(m) for _, m in selected_modules],
             all_candidate_names=all_candidate_names,
-            raw_attention_shape=list(raw_attn.shape),
-            value_tensor_shape=list(values.shape) if values is not None else [],
-            normalised_attention_shape=list(raw_attn.shape),
-            normalised_value_shape=list(values.shape) if values is not None else [],
+            raw_attention_shape=list(layer_attns[0].shape),
+            value_tensor_shape=[],
+            normalised_attention_shape=list(layer_max_attn.shape),
+            normalised_value_shape=[],
             num_prompt_tokens=num_prompt_tokens,
             num_image_tokens=num_image_tokens,
             inferred_spatial_grid=spatial_grid,
@@ -389,13 +502,22 @@ def cmd_map(args: argparse.Namespace) -> None:
 
         dbg_npz = save_debug_tensors(
             output_dir=args.output_dir,
-            raw_attention=raw_attn,
-            effective_attention=eff_attn,
-            values=values,
-            query=captured.query,
-            key=captured.key,
+            raw_attention=layer_max_attn,
+            effective_attention=layer_max_attn,
+            values=None,
+            query=first_captured.query if first_captured else None,
+            key=first_captured.key if first_captured else None,
+        )
+        # Also save per-layer tensors.
+        per_layer_dict = {}
+        for i, (lname, lattn) in enumerate(zip(layer_names, layer_attns)):
+            per_layer_dict[f"layer_{i}_attn"] = lattn.cpu().float().numpy()
+        np.savez_compressed(
+            str(output_dir / "per_layer_tensors.npz"),
+            **per_layer_dict,
         )
         print(f"  debug tensors       : {dbg_npz}")
+        print(f"  per-layer tensors   : {output_dir / 'per_layer_tensors.npz'}")
 
     print("Done.")
 
