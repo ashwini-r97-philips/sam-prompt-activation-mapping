@@ -214,17 +214,24 @@ class AttentionCapture:
         self,
         mod: nn.Module,
         inputs: tuple,
+        kwargs: dict,
         output: Any,
     ) -> None:
-        """Forward-hook callback: store inputs and outputs."""
-        self._captured_inputs.append(inputs)
+        """Forward-hook callback: store inputs and outputs.
+
+        When registered with ``with_kwargs=True`` (PyTorch 2.0+) the
+        signature is ``hook(module, args, kwargs, output)``.  We store
+        both positional and keyword args so Q/K/V can be resolved from
+        either.
+        """
+        self._captured_inputs.append((inputs, kwargs))
         self._captured_outputs.append(output)
 
     # ----- lifecycle --------------------------------------------------------
 
     def register(self) -> None:
         """Attach forward hooks to the target module."""
-        h = self.module.register_forward_hook(self._hook_fn)
+        h = self.module.register_forward_hook(self._hook_fn, with_kwargs=True)
         self._hooks.append(h)
 
     def remove(self) -> None:
@@ -249,8 +256,28 @@ class AttentionCapture:
             cap.warnings.append("No inputs captured — was the module called?")
             return cap
 
-        inputs = self._captured_inputs[-1]  # last call
+        raw = self._captured_inputs[-1]  # last call — (positional, kwargs)
         output = self._captured_outputs[-1]
+
+        # Unpack positional args and keyword args captured by the hook.
+        if isinstance(raw, tuple) and len(raw) == 2 and isinstance(raw[1], dict):
+            pos_inputs, kw_inputs = raw
+        else:
+            # Fallback for hooks registered without with_kwargs
+            pos_inputs, kw_inputs = raw, {}
+
+        # Build a unified list of query, key, value from positional or kwargs.
+        # SAM 3's custom MHA is called with keyword args only (query=, key=, value=).
+        query = pos_inputs[0] if len(pos_inputs) > 0 else kw_inputs.get("query")
+        key = pos_inputs[1] if len(pos_inputs) > 1 else kw_inputs.get("key")
+        value = pos_inputs[2] if len(pos_inputs) > 2 else kw_inputs.get("value")
+
+        # Synthetic inputs tuple for shape recording and downstream methods.
+        inputs = tuple(
+            x for x in (query, key, value) if x is not None
+        ) + tuple(
+            x for x in pos_inputs[3:] if True
+        )
 
         # Record shapes for debugging.
         input_shapes = [
@@ -489,6 +516,24 @@ class AttentionCapture:
         """
         embed_dim = num_heads * head_dim
 
+        # Clone tensors to escape inference-mode restrictions so F.linear
+        # can compute projections without autograd complaining.
+        # Also cast to the weight dtype to avoid mixed-precision mismatches
+        # when the model runs under autocast.
+        weight_dtype = None
+        if hasattr(mod, "in_proj_weight") and mod.in_proj_weight is not None:
+            weight_dtype = mod.in_proj_weight.dtype
+        elif hasattr(mod, "q_proj_weight") and mod.q_proj_weight is not None:
+            weight_dtype = mod.q_proj_weight.dtype
+
+        query = query.clone()
+        key = key.clone()
+        value = value.clone()
+        if weight_dtype is not None:
+            query = query.to(weight_dtype)
+            key = key.to(weight_dtype)
+            value = value.to(weight_dtype)
+
         # Determine whether inputs are sequence-first [T, B, D] or
         # batch-first [B, T, D].  SAM 3's custom MHA defaults to
         # sequence-first unless ``batch_first=True``.
@@ -502,24 +547,25 @@ class AttentionCapture:
         # Now all tensors are [B, T, D].
         bsz = query.shape[0]
 
-        if hasattr(mod, "in_proj_weight") and mod.in_proj_weight is not None:
-            # Packed projection: in_proj_weight has shape [3*embed_dim, embed_dim].
-            w = mod.in_proj_weight  # [3E, E]
-            b = mod.in_proj_bias if hasattr(mod, "in_proj_bias") else None
-            q = F.linear(query, w[:embed_dim], b[:embed_dim] if b is not None else None)
-            k = F.linear(key, w[embed_dim : 2 * embed_dim], b[embed_dim : 2 * embed_dim] if b is not None else None)
-            v = F.linear(value, w[2 * embed_dim :], b[2 * embed_dim :] if b is not None else None)
-        elif hasattr(mod, "q_proj_weight") and mod.q_proj_weight is not None:
-            b = mod.in_proj_bias if hasattr(mod, "in_proj_bias") else None
-            q = F.linear(query, mod.q_proj_weight, b[:embed_dim] if b is not None else None)
-            k = F.linear(key, mod.k_proj_weight, b[embed_dim : 2 * embed_dim] if b is not None else None)
-            v = F.linear(value, mod.v_proj_weight, b[2 * embed_dim :] if b is not None else None)
-        else:
-            warns.append(
-                "Module has neither in_proj_weight nor q_proj_weight. "
-                "Cannot project Q/K/V."
-            )
-            return None, None, None
+        with torch.no_grad():
+            if hasattr(mod, "in_proj_weight") and mod.in_proj_weight is not None:
+                # Packed projection: in_proj_weight has shape [3*embed_dim, embed_dim].
+                w = mod.in_proj_weight  # [3E, E]
+                b = mod.in_proj_bias if hasattr(mod, "in_proj_bias") else None
+                q = F.linear(query, w[:embed_dim], b[:embed_dim] if b is not None else None)
+                k = F.linear(key, w[embed_dim : 2 * embed_dim], b[embed_dim : 2 * embed_dim] if b is not None else None)
+                v = F.linear(value, w[2 * embed_dim :], b[2 * embed_dim :] if b is not None else None)
+            elif hasattr(mod, "q_proj_weight") and mod.q_proj_weight is not None:
+                b = mod.in_proj_bias if hasattr(mod, "in_proj_bias") else None
+                q = F.linear(query, mod.q_proj_weight, b[:embed_dim] if b is not None else None)
+                k = F.linear(key, mod.k_proj_weight, b[embed_dim : 2 * embed_dim] if b is not None else None)
+                v = F.linear(value, mod.v_proj_weight, b[2 * embed_dim :] if b is not None else None)
+            else:
+                warns.append(
+                    "Module has neither in_proj_weight nor q_proj_weight. "
+                    "Cannot project Q/K/V."
+                )
+                return None, None, None
 
         # Reshape to [B, H, T, D_head].
         q = q.view(bsz, -1, num_heads, head_dim).transpose(1, 2)

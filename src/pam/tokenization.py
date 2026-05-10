@@ -48,7 +48,7 @@ def get_token_labels(
         labels = _fallback_labels(prompt)
         warnings.warn(
             "Could not access SAM 3 tokeniser. Token labels are approximate "
-            "(whitespace-split). Prefix [CLS] and suffix [EOS] are guesses.",
+            "(whitespace-split).",
             stacklevel=2,
         )
 
@@ -111,19 +111,31 @@ def _try_sam3_tokenizer(model: Any, prompt: str) -> list[str] | None:
 
 
 def _fallback_labels(prompt: str) -> list[str]:
-    """Whitespace-split fallback with ``[CLS]`` / ``[EOS]`` markers."""
+    """Whitespace-split fallback.
+
+    SAM 3's DETR encoder receives a concatenated prompt tensor:
+        [text_tokens | geometry_tokens | visual_prompt_tokens]
+    We label the text portion by whitespace-splitting the prompt string.
+    Any remaining positions are labelled generically (``geo_00``, etc.)
+    and will be padded/trimmed by ``_align_labels``.
+    """
     words = prompt.split()
-    return ["[CLS]"] + words + ["[EOS]"]
+    return [f"txt_{w}" for w in words]
 
 
 def _align_labels(labels: list[str], num_tokens: int) -> list[str]:
-    """Pad or trim *labels* to exactly *num_tokens* entries."""
+    """Pad or trim *labels* to exactly *num_tokens* entries.
+
+    Extra positions beyond the text tokens are labelled ``prompt_NN``
+    (these are typically geometry or visual-prompt tokens in SAM 3's
+    concatenated prompt tensor).
+    """
     if len(labels) == num_tokens:
         return labels
     if len(labels) < num_tokens:
-        # Pad with generic positional labels.
+        # Pad with generic positional labels for non-text prompt tokens.
         for i in range(len(labels), num_tokens):
-            labels.append(f"token_{i:02d}")
+            labels.append(f"prompt_{i:02d}")
     else:
         labels = labels[:num_tokens]
     return labels

@@ -133,17 +133,37 @@ _DEFAULT_CROSS_ATTN_SUBSTRINGS = [
     "cross_attention",
 ]
 
+# Preferred module path substrings, in priority order.  The DETR
+# transformer encoder is where the full prompt (text + geometry)
+# cross-attends to image features — this is the most useful layer for
+# prompt activation mapping.
+_PREFERRED_MODULE_HINTS = [
+    "transformer.encoder",   # DETR encoder: prompt → image cross-attn
+    "transformer.decoder",   # DETR decoder: queries → text
+]
+
 
 def _auto_filter_candidates(
     candidates: list[tuple[str, "torch.nn.Module"]],
 ) -> list[tuple[str, "torch.nn.Module"]]:
-    """Keep only candidates whose names contain a cross-attention hint."""
+    """Keep only candidates whose names contain a cross-attention hint,
+    prioritising the DETR transformer encoder over geometry/other encoders."""
     filtered = []
     for name, mod in candidates:
         lower = name.lower()
         if any(hint in lower for hint in _DEFAULT_CROSS_ATTN_SUBSTRINGS):
             filtered.append((name, mod))
-    return filtered if filtered else candidates  # fall back to all if none match
+
+    if not filtered:
+        return candidates  # fall back to all if none match
+
+    # Among cross-attn modules, prefer the DETR transformer encoder.
+    for hint in _PREFERRED_MODULE_HINTS:
+        preferred = [(n, m) for n, m in filtered if hint in n]
+        if preferred:
+            return preferred
+
+    return filtered
 
 
 # ---------------------------------------------------------------------------
@@ -252,19 +272,60 @@ def cmd_map(args: argparse.Namespace) -> None:
             file=sys.stderr,
         )
 
-    raw_attn = captured.raw_attention  # [B, H, T_prompt, T_image]
-    values = captured.values  # [B, H, T_image, D_head] or None
+    raw_attn = captured.raw_attention  # [B, H, T_q, T_kv]
+    values = captured.values  # [B, H, T_kv, D_head] or None
 
     print(f"  raw attention shape : {list(raw_attn.shape)}")
     if values is not None:
         print(f"  value tensor shape  : {list(values.shape)}")
 
+    # -- detect attention orientation ----------------------------------------
+    # In SAM 3's DETR encoder the image tokens are the *query* and the
+    # prompt tokens are the *key/value*, giving shape
+    #   [B, H, N_image, N_prompt].
+    # We need the transpose: [B, H, N_prompt, N_image] so that each row
+    # is a prompt token's attention distribution over image positions.
+    #
+    # Heuristic: if dim-2 >> dim-3 AND dim-2 is a perfect square (spatial
+    # grid), the attention is image→prompt and we should transpose.
+    dim_q, dim_kv = raw_attn.shape[2], raw_attn.shape[3]
+    import math as _math
+    sq_q = _math.isqrt(dim_q)
+    sq_kv = _math.isqrt(dim_kv)
+    transposed = False
+
+    if sq_q * sq_q == dim_q and dim_q > dim_kv:
+        # dim_q looks like a spatial grid (e.g. 72²=5184) and dim_kv is
+        # much smaller (prompt tokens).  Transpose.
+        print(f"  NOTE: detected image→prompt attention ({dim_q} queries, "
+              f"{dim_kv} keys). Transposing to prompt→image.")
+        raw_attn = raw_attn.transpose(2, 3)  # [B, H, N_prompt, N_image]
+        # The transposed rows are NOT valid probability distributions (they
+        # are columns of the original softmax).  Re-normalise so each
+        # prompt token's attention over image positions sums to 1.
+        raw_attn = raw_attn / (raw_attn.sum(dim=-1, keepdim=True) + 1e-8)
+        transposed = True
+        all_warnings.append(
+            "Attention was transposed from image→prompt to prompt→image "
+            "and re-normalised.  Values for effective-attention are from "
+            "the original (untransposed) direction."
+        )
+
     num_prompt_tokens = raw_attn.shape[2]
     num_image_tokens = raw_attn.shape[3]
 
     # -- effective attention -------------------------------------------------
-    if values is not None:
+    if values is not None and not transposed:
         eff_attn = compute_effective_attention(raw_attn, values)
+    elif values is not None and transposed:
+        # With transposed attention the value vectors were for the prompt
+        # (original KV side), not the image.  Effective attention in the
+        # traditional sense doesn't apply.  Fall back to raw.
+        eff_attn = raw_attn
+        all_warnings.append(
+            "Effective attention skipped: value vectors correspond to the "
+            "prompt (original KV), not image positions."
+        )
     else:
         eff_attn = raw_attn  # fallback: just use raw
         all_warnings.append("Using raw attention as effective (no values captured).")

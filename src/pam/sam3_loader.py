@@ -117,6 +117,7 @@ def run_inference(
         The raw output dictionary from ``processor.set_text_prompt()``.
     """
     image = Image.open(image_path).convert("RGB")
-    state = processor.set_image(image)
-    output = processor.set_text_prompt(state=state, prompt=prompt)
+    with torch.autocast(device_type=device.split(":")[0], dtype=torch.bfloat16):
+        state = processor.set_image(image)
+        output = processor.set_text_prompt(state=state, prompt=prompt)
     return output
