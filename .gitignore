@@ -1,1 +1,6 @@
 __pycache__/
+*.egg-info/
+outputs/*
+inputs/*
+logs/*
+external/*
