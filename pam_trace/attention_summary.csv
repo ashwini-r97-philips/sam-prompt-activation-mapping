@@ -1,0 +1,94 @@
+event_id,module_path,code_class,diagram_name,layer_index,attn_kind,attn_type,stream,query_shape,key_shape,value_shape,output_shape,attn_weights_shape,weights_returned,output_seq_matches_query
+0,backbone.vision_backbone.trunk.blocks.0.attn,Attention,Image Encoder Self-Attention (ViT),0,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+1,backbone.vision_backbone.trunk.blocks.1.attn,Attention,Image Encoder Self-Attention (ViT),1,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+2,backbone.vision_backbone.trunk.blocks.2.attn,Attention,Image Encoder Self-Attention (ViT),2,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+3,backbone.vision_backbone.trunk.blocks.3.attn,Attention,Image Encoder Self-Attention (ViT),3,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+4,backbone.vision_backbone.trunk.blocks.4.attn,Attention,Image Encoder Self-Attention (ViT),4,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+5,backbone.vision_backbone.trunk.blocks.5.attn,Attention,Image Encoder Self-Attention (ViT),5,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+6,backbone.vision_backbone.trunk.blocks.6.attn,Attention,Image Encoder Self-Attention (ViT),6,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+7,backbone.vision_backbone.trunk.blocks.7.attn,Attention,Image Encoder Self-Attention (ViT),7,vit_self_attn,self,image,1x72x72x1024,1x72x72x1024,1x72x72x1024,1x72x72x1024,,False,True
+8,backbone.vision_backbone.trunk.blocks.8.attn,Attention,Image Encoder Self-Attention (ViT),8,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+9,backbone.vision_backbone.trunk.blocks.9.attn,Attention,Image Encoder Self-Attention (ViT),9,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+10,backbone.vision_backbone.trunk.blocks.10.attn,Attention,Image Encoder Self-Attention (ViT),10,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+11,backbone.vision_backbone.trunk.blocks.11.attn,Attention,Image Encoder Self-Attention (ViT),11,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+12,backbone.vision_backbone.trunk.blocks.12.attn,Attention,Image Encoder Self-Attention (ViT),12,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+13,backbone.vision_backbone.trunk.blocks.13.attn,Attention,Image Encoder Self-Attention (ViT),13,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+14,backbone.vision_backbone.trunk.blocks.14.attn,Attention,Image Encoder Self-Attention (ViT),14,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+15,backbone.vision_backbone.trunk.blocks.15.attn,Attention,Image Encoder Self-Attention (ViT),15,vit_self_attn,self,image,1x72x72x1024,1x72x72x1024,1x72x72x1024,1x72x72x1024,,False,True
+16,backbone.vision_backbone.trunk.blocks.16.attn,Attention,Image Encoder Self-Attention (ViT),16,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+17,backbone.vision_backbone.trunk.blocks.17.attn,Attention,Image Encoder Self-Attention (ViT),17,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+18,backbone.vision_backbone.trunk.blocks.18.attn,Attention,Image Encoder Self-Attention (ViT),18,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+19,backbone.vision_backbone.trunk.blocks.19.attn,Attention,Image Encoder Self-Attention (ViT),19,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+20,backbone.vision_backbone.trunk.blocks.20.attn,Attention,Image Encoder Self-Attention (ViT),20,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+21,backbone.vision_backbone.trunk.blocks.21.attn,Attention,Image Encoder Self-Attention (ViT),21,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+22,backbone.vision_backbone.trunk.blocks.22.attn,Attention,Image Encoder Self-Attention (ViT),22,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+23,backbone.vision_backbone.trunk.blocks.23.attn,Attention,Image Encoder Self-Attention (ViT),23,vit_self_attn,self,image,1x72x72x1024,1x72x72x1024,1x72x72x1024,1x72x72x1024,,False,True
+24,backbone.vision_backbone.trunk.blocks.24.attn,Attention,Image Encoder Self-Attention (ViT),24,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+25,backbone.vision_backbone.trunk.blocks.25.attn,Attention,Image Encoder Self-Attention (ViT),25,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+26,backbone.vision_backbone.trunk.blocks.26.attn,Attention,Image Encoder Self-Attention (ViT),26,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+27,backbone.vision_backbone.trunk.blocks.27.attn,Attention,Image Encoder Self-Attention (ViT),27,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+28,backbone.vision_backbone.trunk.blocks.28.attn,Attention,Image Encoder Self-Attention (ViT),28,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+29,backbone.vision_backbone.trunk.blocks.29.attn,Attention,Image Encoder Self-Attention (ViT),29,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+30,backbone.vision_backbone.trunk.blocks.30.attn,Attention,Image Encoder Self-Attention (ViT),30,vit_self_attn,self,image,9x24x24x1024,9x24x24x1024,9x24x24x1024,9x24x24x1024,,False,True
+31,backbone.vision_backbone.trunk.blocks.31.attn,Attention,Image Encoder Self-Attention (ViT),31,vit_self_attn,self,image,1x72x72x1024,1x72x72x1024,1x72x72x1024,1x72x72x1024,,False,True
+32,backbone.language_backbone.encoder.transformer.resblocks.0.attn,MultiheadAttention,Text Encoder Self-Attention,0,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+33,backbone.language_backbone.encoder.transformer.resblocks.1.attn,MultiheadAttention,Text Encoder Self-Attention,1,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+34,backbone.language_backbone.encoder.transformer.resblocks.2.attn,MultiheadAttention,Text Encoder Self-Attention,2,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+35,backbone.language_backbone.encoder.transformer.resblocks.3.attn,MultiheadAttention,Text Encoder Self-Attention,3,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+36,backbone.language_backbone.encoder.transformer.resblocks.4.attn,MultiheadAttention,Text Encoder Self-Attention,4,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+37,backbone.language_backbone.encoder.transformer.resblocks.5.attn,MultiheadAttention,Text Encoder Self-Attention,5,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+38,backbone.language_backbone.encoder.transformer.resblocks.6.attn,MultiheadAttention,Text Encoder Self-Attention,6,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+39,backbone.language_backbone.encoder.transformer.resblocks.7.attn,MultiheadAttention,Text Encoder Self-Attention,7,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+40,backbone.language_backbone.encoder.transformer.resblocks.8.attn,MultiheadAttention,Text Encoder Self-Attention,8,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+41,backbone.language_backbone.encoder.transformer.resblocks.9.attn,MultiheadAttention,Text Encoder Self-Attention,9,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+42,backbone.language_backbone.encoder.transformer.resblocks.10.attn,MultiheadAttention,Text Encoder Self-Attention,10,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+43,backbone.language_backbone.encoder.transformer.resblocks.11.attn,MultiheadAttention,Text Encoder Self-Attention,11,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+44,backbone.language_backbone.encoder.transformer.resblocks.12.attn,MultiheadAttention,Text Encoder Self-Attention,12,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+45,backbone.language_backbone.encoder.transformer.resblocks.13.attn,MultiheadAttention,Text Encoder Self-Attention,13,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+46,backbone.language_backbone.encoder.transformer.resblocks.14.attn,MultiheadAttention,Text Encoder Self-Attention,14,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+47,backbone.language_backbone.encoder.transformer.resblocks.15.attn,MultiheadAttention,Text Encoder Self-Attention,15,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+48,backbone.language_backbone.encoder.transformer.resblocks.16.attn,MultiheadAttention,Text Encoder Self-Attention,16,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+49,backbone.language_backbone.encoder.transformer.resblocks.17.attn,MultiheadAttention,Text Encoder Self-Attention,17,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+50,backbone.language_backbone.encoder.transformer.resblocks.18.attn,MultiheadAttention,Text Encoder Self-Attention,18,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+51,backbone.language_backbone.encoder.transformer.resblocks.19.attn,MultiheadAttention,Text Encoder Self-Attention,19,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+52,backbone.language_backbone.encoder.transformer.resblocks.20.attn,MultiheadAttention,Text Encoder Self-Attention,20,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+53,backbone.language_backbone.encoder.transformer.resblocks.21.attn,MultiheadAttention,Text Encoder Self-Attention,21,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+54,backbone.language_backbone.encoder.transformer.resblocks.22.attn,MultiheadAttention,Text Encoder Self-Attention,22,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+55,backbone.language_backbone.encoder.transformer.resblocks.23.attn,MultiheadAttention,Text Encoder Self-Attention,23,text_self_attn,self,text,1x32x1024,1x32x1024,1x32x1024,1x32x1024,1x16x32x32,True,True
+56,geometry_encoder.encode.0.self_attn,MultiheadAttentionWrapper,Geometry Encoder Self-Attention,0,self_attn,self,geometry,1x1x256,1x1x256,1x1x256,1x1x256,1x8x1x1,True,True
+57,geometry_encoder.encode.0.cross_attn_image,MultiheadAttentionWrapper,Geometry Encoder Cross-Attention to Image,0,cross_attn_image,cross,geometry,1x1x256,5184x1x256,5184x1x256,1x1x256,1x8x1x5184,True,True
+58,geometry_encoder.encode.1.self_attn,MultiheadAttentionWrapper,Geometry Encoder Self-Attention,1,self_attn,self,geometry,1x1x256,1x1x256,1x1x256,1x1x256,1x8x1x1,True,True
+59,geometry_encoder.encode.1.cross_attn_image,MultiheadAttentionWrapper,Geometry Encoder Cross-Attention to Image,1,cross_attn_image,cross,geometry,1x1x256,5184x1x256,5184x1x256,1x1x256,1x8x1x5184,True,True
+60,geometry_encoder.encode.2.self_attn,MultiheadAttentionWrapper,Geometry Encoder Self-Attention,2,self_attn,self,geometry,1x1x256,1x1x256,1x1x256,1x1x256,1x8x1x1,True,True
+61,geometry_encoder.encode.2.cross_attn_image,MultiheadAttentionWrapper,Geometry Encoder Cross-Attention to Image,2,cross_attn_image,cross,geometry,1x1x256,5184x1x256,5184x1x256,1x1x256,1x8x1x5184,True,True
+62,transformer.encoder.layers.0.self_attn,MultiheadAttentionWrapper,Multimodal Decoder Self-Attention,0,self_attn,self,fused,1x5184x256,1x5184x256,1x5184x256,1x5184x256,1x8x5184x5184,True,True
+63,transformer.encoder.layers.0.cross_attn_image,MultiheadAttentionWrapper,Multimodal Decoder Cross-Attention to Image,0,cross_attn_image,cross,fused,1x5184x256,1x33x256,1x33x256,1x5184x256,1x8x5184x33,True,True
+64,transformer.encoder.layers.1.self_attn,MultiheadAttentionWrapper,Multimodal Decoder Self-Attention,1,self_attn,self,fused,1x5184x256,1x5184x256,1x5184x256,1x5184x256,1x8x5184x5184,True,True
+65,transformer.encoder.layers.1.cross_attn_image,MultiheadAttentionWrapper,Multimodal Decoder Cross-Attention to Image,1,cross_attn_image,cross,fused,1x5184x256,1x33x256,1x33x256,1x5184x256,1x8x5184x33,True,True
+66,transformer.encoder.layers.2.self_attn,MultiheadAttentionWrapper,Multimodal Decoder Self-Attention,2,self_attn,self,fused,1x5184x256,1x5184x256,1x5184x256,1x5184x256,1x8x5184x5184,True,True
+67,transformer.encoder.layers.2.cross_attn_image,MultiheadAttentionWrapper,Multimodal Decoder Cross-Attention to Image,2,cross_attn_image,cross,fused,1x5184x256,1x33x256,1x33x256,1x5184x256,1x8x5184x33,True,True
+68,transformer.encoder.layers.3.self_attn,MultiheadAttentionWrapper,Multimodal Decoder Self-Attention,3,self_attn,self,fused,1x5184x256,1x5184x256,1x5184x256,1x5184x256,1x8x5184x5184,True,True
+69,transformer.encoder.layers.3.cross_attn_image,MultiheadAttentionWrapper,Multimodal Decoder Cross-Attention to Image,3,cross_attn_image,cross,fused,1x5184x256,1x33x256,1x33x256,1x5184x256,1x8x5184x33,True,True
+70,transformer.encoder.layers.4.self_attn,MultiheadAttentionWrapper,Multimodal Decoder Self-Attention,4,self_attn,self,fused,1x5184x256,1x5184x256,1x5184x256,1x5184x256,1x8x5184x5184,True,True
+71,transformer.encoder.layers.4.cross_attn_image,MultiheadAttentionWrapper,Multimodal Decoder Cross-Attention to Image,4,cross_attn_image,cross,fused,1x5184x256,1x33x256,1x33x256,1x5184x256,1x8x5184x33,True,True
+72,transformer.encoder.layers.5.self_attn,MultiheadAttentionWrapper,Multimodal Decoder Self-Attention,5,self_attn,self,fused,1x5184x256,1x5184x256,1x5184x256,1x5184x256,1x8x5184x5184,True,True
+73,transformer.encoder.layers.5.cross_attn_image,MultiheadAttentionWrapper,Multimodal Decoder Cross-Attention to Image,5,cross_attn_image,cross,fused,1x5184x256,1x33x256,1x33x256,1x5184x256,1x8x5184x33,True,True
+74,transformer.decoder.layers.0.self_attn,MultiheadAttention,Detector Decoder Self-Attention,0,self_attn,self,detector_query,201x1x256,201x1x256,201x1x256,201x1x256,1x8x201x201,True,True
+75,transformer.decoder.layers.0.ca_text,MultiheadAttention,Detector Decoder Cross-Attention to Text,0,cross_attn_text,cross,detector_query,201x1x256,33x1x256,33x1x256,201x1x256,1x8x201x33,True,True
+76,transformer.decoder.layers.0.cross_attn,MultiheadAttentionWrapper,Detector Decoder Cross-Attention to Image,0,cross_attn_image,cross,detector_query,201x1x256,5184x1x256,5184x1x256,201x1x256,1x8x201x5184,True,True
+77,transformer.decoder.layers.1.self_attn,MultiheadAttention,Detector Decoder Self-Attention,1,self_attn,self,detector_query,201x1x256,201x1x256,201x1x256,201x1x256,1x8x201x201,True,True
+78,transformer.decoder.layers.1.ca_text,MultiheadAttention,Detector Decoder Cross-Attention to Text,1,cross_attn_text,cross,detector_query,201x1x256,33x1x256,33x1x256,201x1x256,1x8x201x33,True,True
+79,transformer.decoder.layers.1.cross_attn,MultiheadAttentionWrapper,Detector Decoder Cross-Attention to Image,1,cross_attn_image,cross,detector_query,201x1x256,5184x1x256,5184x1x256,201x1x256,1x8x201x5184,True,True
+80,transformer.decoder.layers.2.self_attn,MultiheadAttention,Detector Decoder Self-Attention,2,self_attn,self,detector_query,201x1x256,201x1x256,201x1x256,201x1x256,1x8x201x201,True,True
+81,transformer.decoder.layers.2.ca_text,MultiheadAttention,Detector Decoder Cross-Attention to Text,2,cross_attn_text,cross,detector_query,201x1x256,33x1x256,33x1x256,201x1x256,1x8x201x33,True,True
+82,transformer.decoder.layers.2.cross_attn,MultiheadAttentionWrapper,Detector Decoder Cross-Attention to Image,2,cross_attn_image,cross,detector_query,201x1x256,5184x1x256,5184x1x256,201x1x256,1x8x201x5184,True,True
+83,transformer.decoder.layers.3.self_attn,MultiheadAttention,Detector Decoder Self-Attention,3,self_attn,self,detector_query,201x1x256,201x1x256,201x1x256,201x1x256,1x8x201x201,True,True
+84,transformer.decoder.layers.3.ca_text,MultiheadAttention,Detector Decoder Cross-Attention to Text,3,cross_attn_text,cross,detector_query,201x1x256,33x1x256,33x1x256,201x1x256,1x8x201x33,True,True
+85,transformer.decoder.layers.3.cross_attn,MultiheadAttentionWrapper,Detector Decoder Cross-Attention to Image,3,cross_attn_image,cross,detector_query,201x1x256,5184x1x256,5184x1x256,201x1x256,1x8x201x5184,True,True
+86,transformer.decoder.layers.4.self_attn,MultiheadAttention,Detector Decoder Self-Attention,4,self_attn,self,detector_query,201x1x256,201x1x256,201x1x256,201x1x256,1x8x201x201,True,True
+87,transformer.decoder.layers.4.ca_text,MultiheadAttention,Detector Decoder Cross-Attention to Text,4,cross_attn_text,cross,detector_query,201x1x256,33x1x256,33x1x256,201x1x256,1x8x201x33,True,True
+88,transformer.decoder.layers.4.cross_attn,MultiheadAttentionWrapper,Detector Decoder Cross-Attention to Image,4,cross_attn_image,cross,detector_query,201x1x256,5184x1x256,5184x1x256,201x1x256,1x8x201x5184,True,True
+89,transformer.decoder.layers.5.self_attn,MultiheadAttention,Detector Decoder Self-Attention,5,self_attn,self,detector_query,201x1x256,201x1x256,201x1x256,201x1x256,1x8x201x201,True,True
+90,transformer.decoder.layers.5.ca_text,MultiheadAttention,Detector Decoder Cross-Attention to Text,5,cross_attn_text,cross,detector_query,201x1x256,33x1x256,33x1x256,201x1x256,1x8x201x33,True,True
+91,transformer.decoder.layers.5.cross_attn,MultiheadAttentionWrapper,Detector Decoder Cross-Attention to Image,5,cross_attn_image,cross,detector_query,201x1x256,5184x1x256,5184x1x256,201x1x256,1x8x201x5184,True,True
+92,segmentation_head.cross_attend_prompt,MultiheadAttentionWrapper,Mask Head Cross-Attention to Prompt,,cross_attn_prompt,cross,mask,5184x1x256,33x1x256,33x1x256,5184x1x256,1x8x5184x33,True,True

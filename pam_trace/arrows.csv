@@ -1,0 +1,19 @@
+from_code_name,to_code_name,from_diagram_name,to_diagram_name,shape,dtype,event_pair
+backbone.vision_backbone.position_encoding,segmentation_head.pixel_decoder,Image Encoder (Pos Enc),Pixel Decoder,1x256x288x288,float32,3->116
+geometry_encoder.points_direct_project,geometry_encoder.points_pool_project,Geometry Prompt Encoder,Geometry Prompt Encoder,0x1x256,float32,18->19
+geometry_encoder.points_pool_project,geometry_encoder.points_pos_enc_project,Geometry Prompt Encoder,Geometry Prompt Encoder,0x1x256,float32,20->21
+geometry_encoder.final_proj,geometry_encoder.norm,Geometry Prompt Encoder,Geometry Prompt Encoder,1x1x256,float32,34->35
+geometry_encoder.norm,geometry_encoder.encode_norm,Geometry Prompt Encoder,Geometry Prompt Encoder,1x1x256,float32,36->37
+transformer.encoder.layers.0,transformer.encoder.layers.1.self_attn,Multimodal Decoder Layer,Multimodal Decoder Self-Attention,1x5184x256,float32,43->44
+transformer.encoder.layers.1,transformer.encoder.layers.2.self_attn,Multimodal Decoder Layer,Multimodal Decoder Self-Attention,1x5184x256,float32,47->48
+transformer.encoder.layers.2,transformer.encoder.layers.3.self_attn,Multimodal Decoder Layer,Multimodal Decoder Self-Attention,1x5184x256,float32,51->52
+transformer.encoder.layers.3,transformer.encoder.layers.4.self_attn,Multimodal Decoder Layer,Multimodal Decoder Self-Attention,1x5184x256,float32,55->56
+transformer.encoder.layers.4,transformer.encoder.layers.5.self_attn,Multimodal Decoder Layer,Multimodal Decoder Self-Attention,1x5184x256,float32,59->60
+transformer.decoder.layers.0,transformer.decoder.bbox_embed,Detector Decoder Layer,Box Head,200x1x256,float32,70->71
+transformer.decoder.layers.1,transformer.decoder.bbox_embed,Detector Decoder Layer,Box Head,200x1x256,float32,78->79
+transformer.decoder.layers.2,transformer.decoder.bbox_embed,Detector Decoder Layer,Box Head,200x1x256,float32,86->87
+transformer.decoder.layers.3,transformer.decoder.bbox_embed,Detector Decoder Layer,Box Head,200x1x256,float32,94->95
+transformer.decoder.layers.4,transformer.decoder.bbox_embed,Detector Decoder Layer,Box Head,200x1x256,float32,102->103
+transformer.decoder.layers.5,transformer.decoder.bbox_embed,Detector Decoder Layer,Box Head,200x1x256,float32,110->111
+segmentation_head.pixel_decoder,segmentation_head.instance_seg_head,Pixel Decoder,Mask Predictor,1x256x288x288,float32,117->118
+segmentation_head.instance_seg_head,segmentation_head.semantic_seg_head,Mask Predictor,Semantic Head,1x256x288x288,float32,119->120
