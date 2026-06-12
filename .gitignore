@@ -12,3 +12,4 @@ outputs/**/*.png
 outputs/**/*.npy
 outputs/**/*.npz
 outputs/test_existing/
+**/run_config.json
