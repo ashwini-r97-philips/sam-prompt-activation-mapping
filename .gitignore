@@ -1,1 +1,14 @@
 __pycache__/
+
+# Local large/generated artifacts
+external/
+test_images/
+.pam_watch/
+__pycache__/
+*.pyc
+
+# Do not commit heavy generated outputs
+outputs/**/*.png
+outputs/**/*.npy
+outputs/**/*.npz
+outputs/test_existing/

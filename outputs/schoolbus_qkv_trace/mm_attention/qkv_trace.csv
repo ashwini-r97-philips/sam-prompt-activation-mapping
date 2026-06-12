@@ -1,0 +1,13 @@
+layer,module_name,attention_type,q_shape,k_shape,v_shape,output_shape,q_length,k_length,v_length,output_length,updated_stream_guess,kv_source_guess
+0,transformer.encoder.layers.0.self_attn,self_attn,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",5184,5184,5184,5184,visual_grid_72x72,visual_grid_72x72
+0,transformer.encoder.layers.0.cross_attn_image,cross_attn_image,"(1, 5184, 256)","(1, 33, 256)","(1, 33, 256)","(1, 5184, 256)",5184,33,33,5184,visual_grid_72x72,prompt_or_text_tokens
+1,transformer.encoder.layers.1.self_attn,self_attn,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",5184,5184,5184,5184,visual_grid_72x72,visual_grid_72x72
+1,transformer.encoder.layers.1.cross_attn_image,cross_attn_image,"(1, 5184, 256)","(1, 33, 256)","(1, 33, 256)","(1, 5184, 256)",5184,33,33,5184,visual_grid_72x72,prompt_or_text_tokens
+2,transformer.encoder.layers.2.self_attn,self_attn,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",5184,5184,5184,5184,visual_grid_72x72,visual_grid_72x72
+2,transformer.encoder.layers.2.cross_attn_image,cross_attn_image,"(1, 5184, 256)","(1, 33, 256)","(1, 33, 256)","(1, 5184, 256)",5184,33,33,5184,visual_grid_72x72,prompt_or_text_tokens
+3,transformer.encoder.layers.3.self_attn,self_attn,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",5184,5184,5184,5184,visual_grid_72x72,visual_grid_72x72
+3,transformer.encoder.layers.3.cross_attn_image,cross_attn_image,"(1, 5184, 256)","(1, 33, 256)","(1, 33, 256)","(1, 5184, 256)",5184,33,33,5184,visual_grid_72x72,prompt_or_text_tokens
+4,transformer.encoder.layers.4.self_attn,self_attn,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",5184,5184,5184,5184,visual_grid_72x72,visual_grid_72x72
+4,transformer.encoder.layers.4.cross_attn_image,cross_attn_image,"(1, 5184, 256)","(1, 33, 256)","(1, 33, 256)","(1, 5184, 256)",5184,33,33,5184,visual_grid_72x72,prompt_or_text_tokens
+5,transformer.encoder.layers.5.self_attn,self_attn,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",5184,5184,5184,5184,visual_grid_72x72,visual_grid_72x72
+5,transformer.encoder.layers.5.cross_attn_image,cross_attn_image,"(1, 5184, 256)","(1, 33, 256)","(1, 33, 256)","(1, 5184, 256)",5184,33,33,5184,visual_grid_72x72,prompt_or_text_tokens

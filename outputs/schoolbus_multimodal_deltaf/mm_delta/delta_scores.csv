@@ -1,0 +1,7 @@
+layer,layer_name,prompt_shape,baseline_shape,delta_shape,mean_delta,max_delta,spatial_shape,heatmap_path
+0,transformer.encoder.layers.0,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",3.443758249282837,7.660775184631348,"(72, 72)",outputs/schoolbus_multimodal_deltaf/mm_delta/layer_0_delta.png
+1,transformer.encoder.layers.1,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",7.019992351531982,11.445869445800781,"(72, 72)",outputs/schoolbus_multimodal_deltaf/mm_delta/layer_1_delta.png
+2,transformer.encoder.layers.2,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",8.777774810791016,13.893091201782227,"(72, 72)",outputs/schoolbus_multimodal_deltaf/mm_delta/layer_2_delta.png
+3,transformer.encoder.layers.3,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",13.567632675170898,23.07551383972168,"(72, 72)",outputs/schoolbus_multimodal_deltaf/mm_delta/layer_3_delta.png
+4,transformer.encoder.layers.4,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",19.540918350219727,33.24945068359375,"(72, 72)",outputs/schoolbus_multimodal_deltaf/mm_delta/layer_4_delta.png
+5,transformer.encoder.layers.5,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",27.434856414794922,54.00888442993164,"(72, 72)",outputs/schoolbus_multimodal_deltaf/mm_delta/layer_5_delta.png

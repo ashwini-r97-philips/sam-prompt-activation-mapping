@@ -1,0 +1,7 @@
+layer,layer_name,prompt_shape,baseline_shape,delta_shape,mean_delta,max_delta,spatial_shape,heatmap_path
+0,transformer.encoder.layers.0,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",2.6848771572113037,9.351699829101562,"(72, 72)",outputs/cat_multimodal_deltaf/mm_delta/layer_0_delta.png
+1,transformer.encoder.layers.1,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",5.974057197570801,11.28815746307373,"(72, 72)",outputs/cat_multimodal_deltaf/mm_delta/layer_1_delta.png
+2,transformer.encoder.layers.2,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",8.401243209838867,13.844575881958008,"(72, 72)",outputs/cat_multimodal_deltaf/mm_delta/layer_2_delta.png
+3,transformer.encoder.layers.3,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",12.539801597595215,20.952913284301758,"(72, 72)",outputs/cat_multimodal_deltaf/mm_delta/layer_3_delta.png
+4,transformer.encoder.layers.4,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",19.95383644104004,32.55546951293945,"(72, 72)",outputs/cat_multimodal_deltaf/mm_delta/layer_4_delta.png
+5,transformer.encoder.layers.5,"(1, 5184, 256)","(1, 5184, 256)","(1, 5184, 256)",29.403127670288086,48.36945724487305,"(72, 72)",outputs/cat_multimodal_deltaf/mm_delta/layer_5_delta.png
