@@ -1,0 +1,13 @@
+layer,attention_module,module_name,call_index,num_heads,tokens,head_dim,importance_sum_mean_abs_grad,importance_sum_grad_x_activation,target_mask_index
+0,self_attn,transformer.encoder.layers.0.self_attn,0,8,5184,32,1.8366651914902832e-06,1.476815860712577e-07,0
+0,cross_attn_image,transformer.encoder.layers.0.cross_attn_image,0,8,5184,32,2.2934824528419995e-06,5.429637575105062e-07,0
+1,self_attn,transformer.encoder.layers.1.self_attn,0,8,5184,32,2.349142803836912e-06,7.418093055377994e-07,0
+1,cross_attn_image,transformer.encoder.layers.1.cross_attn_image,0,8,5184,32,2.180381784455676e-06,3.2510590308731935e-07,0
+2,self_attn,transformer.encoder.layers.2.self_attn,0,8,5184,32,2.5538384278434023e-06,5.675121101944569e-07,0
+2,cross_attn_image,transformer.encoder.layers.2.cross_attn_image,0,8,5184,32,1.956134880742866e-06,1.5701188527117438e-07,0
+3,self_attn,transformer.encoder.layers.3.self_attn,0,8,5184,32,2.014065273669985e-06,8.33089750074123e-07,0
+3,cross_attn_image,transformer.encoder.layers.3.cross_attn_image,0,8,5184,32,1.4348401435881897e-06,9.335587458636496e-08,0
+4,self_attn,transformer.encoder.layers.4.self_attn,0,8,5184,32,1.5121500780423958e-06,6.220298516268485e-07,0
+4,cross_attn_image,transformer.encoder.layers.4.cross_attn_image,0,8,5184,32,9.891183410104532e-07,5.40727158604426e-08,0
+5,self_attn,transformer.encoder.layers.5.self_attn,0,8,5184,32,8.857859654654021e-07,5.564759586462742e-07,0
+5,cross_attn_image,transformer.encoder.layers.5.cross_attn_image,0,8,5184,32,5.609064714917622e-07,4.4899720386126774e-08,0

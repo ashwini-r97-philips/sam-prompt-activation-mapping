@@ -1,0 +1,13 @@
+layer,attention_module,module_name,call_index,query_shape,key_shape,value_shape,sdpa_output_shape,target_mask_index
+0,self_attn,transformer.encoder.layers.0.self_attn,0,"(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)",0
+0,cross_attn_image,transformer.encoder.layers.0.cross_attn_image,0,"(1, 8, 5184, 32)","(1, 8, 33, 32)","(1, 8, 33, 32)","(1, 8, 5184, 32)",0
+1,self_attn,transformer.encoder.layers.1.self_attn,0,"(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)",0
+1,cross_attn_image,transformer.encoder.layers.1.cross_attn_image,0,"(1, 8, 5184, 32)","(1, 8, 33, 32)","(1, 8, 33, 32)","(1, 8, 5184, 32)",0
+2,self_attn,transformer.encoder.layers.2.self_attn,0,"(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)",0
+2,cross_attn_image,transformer.encoder.layers.2.cross_attn_image,0,"(1, 8, 5184, 32)","(1, 8, 33, 32)","(1, 8, 33, 32)","(1, 8, 5184, 32)",0
+3,self_attn,transformer.encoder.layers.3.self_attn,0,"(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)",0
+3,cross_attn_image,transformer.encoder.layers.3.cross_attn_image,0,"(1, 8, 5184, 32)","(1, 8, 33, 32)","(1, 8, 33, 32)","(1, 8, 5184, 32)",0
+4,self_attn,transformer.encoder.layers.4.self_attn,0,"(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)",0
+4,cross_attn_image,transformer.encoder.layers.4.cross_attn_image,0,"(1, 8, 5184, 32)","(1, 8, 33, 32)","(1, 8, 33, 32)","(1, 8, 5184, 32)",0
+5,self_attn,transformer.encoder.layers.5.self_attn,0,"(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)","(1, 8, 5184, 32)",0
+5,cross_attn_image,transformer.encoder.layers.5.cross_attn_image,0,"(1, 8, 5184, 32)","(1, 8, 33, 32)","(1, 8, 33, 32)","(1, 8, 5184, 32)",0
