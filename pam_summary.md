@@ -1,16 +1,22 @@
-# Prompt Activation Mapping (PAM) – Multimodal Decoder Analysis
+# Prompt Activation Mapping (PAM) – Prompt-to-Mask Analysis in SAM3
 
 ## Objective
 
-The goal of this work was to understand how text prompts influence image representations inside the SAM3 Multimodal Decoder and determine which prompt-induced changes are most relevant to the final segmentation mask.
+The goal of this work was to understand how text prompts influence visual representations inside SAM3 and how those prompt-induced changes ultimately affect the final segmentation mask.
 
-The analysis was restricted to:
+The analysis focused on tracing the complete pathway:
 
 ```text
-transformer.encoder.layers.0 – transformer.encoder.layers.5
+Prompt
+↓
+Multimodal Decoder
+↓
+Prompt-conditioned fusion representations
+↓
+DETR Decoder
+↓
+Final segmentation mask
 ```
-
-which correspond to the Multimodal Decoder block in SAM3.
 
 Experiments were performed on three examples:
 
@@ -20,19 +26,50 @@ Experiments were performed on three examples:
 
 ---
 
+# Overview of the Pipeline
+
+The relevant portion of SAM3 can be viewed as:
+
+```text
+Image
+↓
+Vision Backbone
+↓
+72 × 72 image tokens
+↓
+Multimodal Decoder (transformer.encoder.layers.0–5)
+↓
+Prompt-conditioned fusion tokens
+↓
+DETR Decoder (transformer.decoder.layers.0–5)
+↓
+Final segmentation mask
+```
+
+The objective of PAM is to determine:
+
+1. How the prompt modifies fusion tokens.
+2. Which prompt-induced changes affect the final mask.
+3. Which attention heads are responsible for processing prompt information.
+4. Which DETR query produces the final mask.
+5. Which fusion tokens are consumed by that query.
+6. Whether prompt-conditioned fusion tokens causally contribute to the final segmentation output.
+
+---
+
 # 1. DeltaF Analysis (Prompt-Induced Feature Change)
 
 ## Method
 
 For each image, SAM3 was run twice:
 
-**Run A**
+### Run A
 
 ```text
 Image + Real Prompt
 ```
 
-**Run B**
+### Run B
 
 ```text
 Image + Empty Prompt
@@ -46,7 +83,7 @@ Layer output shape:
 (1, 5184, 256)
 ```
 
-which corresponds to:
+corresponding to:
 
 ```text
 72 × 72 visual token grid
@@ -59,7 +96,7 @@ For each layer:
 DeltaF = F_prompt − F_baseline
 ```
 
-and
+and:
 
 ```text
 DeltaF map = ||DeltaF||
@@ -67,7 +104,7 @@ DeltaF map = ||DeltaF||
 
 was computed.
 
-DeltaF therefore measures:
+DeltaF measures:
 
 > How much the text prompt changes the image representation.
 
@@ -112,17 +149,17 @@ DeltaF therefore measures:
 
 ## Interpretation
 
-All three examples show the same trend:
+All three examples show:
 
 ```text
 Layer 0 < Layer 1 < Layer 2 < Layer 3 < Layer 4 < Layer 5
 ```
 
-This indicates that prompt-induced feature changes accumulate progressively throughout the Multimodal Decoder.
+Prompt-induced feature changes accumulate throughout the Multimodal Decoder.
 
-The strongest prompt-conditioned image representations consistently occur in the deepest layers.
+The strongest prompt-conditioned visual representations consistently occur in the deepest layers.
 
-This suggests that SAM3 does not simply use the prompt as a retrieval signal. Instead, prompt information is repeatedly integrated into the visual representation as it passes through the Multimodal Decoder.
+This indicates that prompt information is repeatedly integrated into the visual representation rather than being injected only once.
 
 ---
 
@@ -130,19 +167,20 @@ This suggests that SAM3 does not simply use the prompt as a retrieval signal. In
 
 ## Method
 
-For every Multimodal Decoder layer, the following attention modules were inspected:
+For every Multimodal Decoder layer:
 
 ```text
 self_attn
 cross_attn_image
 ```
 
-The following rule was used:
+were traced.
+
+Interpretation rule:
 
 ```text
 Q = stream being updated
 K/V = stream being read from
-Output length = Q length
 ```
 
 ---
@@ -157,16 +195,13 @@ For all layers:
 Q = (1, 5184, 256)
 K = (1, 5184, 256)
 V = (1, 5184, 256)
-Output = (1, 5184, 256)
 ```
 
-Interpretation:
+Meaning:
 
 ```text
 Image tokens read from image tokens.
 ```
-
----
 
 ### Cross-Attention
 
@@ -176,10 +211,9 @@ For all layers:
 Q = (1, 5184, 256)
 K = (1, 33, 256)
 V = (1, 33, 256)
-Output = (1, 5184, 256)
 ```
 
-Interpretation:
+Meaning:
 
 ```text
 Image tokens read from prompt tokens.
@@ -189,9 +223,9 @@ Image tokens read from prompt tokens.
 
 ## Interpretation
 
-The visual grid is directly updated using prompt information at every Multimodal Decoder layer.
+Prompt information enters the visual representation through cross-attention and is then propagated across image tokens through self-attention.
 
-This confirms that the DeltaF experiment is genuinely measuring prompt-driven modifications to image features.
+This confirms that DeltaF is measuring genuine prompt-induced modifications to image features.
 
 ---
 
@@ -211,21 +245,23 @@ Gradients answer:
 Which image features affected the final mask?
 ```
 
-These two signals were combined:
+These signals were combined:
 
 ```text
 PAM = DeltaF × Gradient
 ```
 
-The gradient target was:
+using:
 
 ```text
-Mean of the selected mask logits
+target = mean(masks_logits)
 ```
 
-This experiment therefore measures:
+as the backward objective.
 
-> Which prompt-induced feature changes actually contribute to the final segmentation mask.
+This identifies:
+
+> Prompt-induced feature changes that actually contribute to the final mask.
 
 ---
 
@@ -233,52 +269,21 @@ This experiment therefore measures:
 
 ### Dog
 
-| Layer | Mean DeltaF × Grad |
-| ----- | ------------------ |
-| 0     | 8.18e-06           |
-| 1     | 1.42e-05           |
-| 2     | 1.61e-05           |
-| 3     | 1.66e-05           |
-| 4     | 1.90e-05           |
-| 5     | 2.12e-05           |
-
 Peak:
 
 ```text
 Layer 5
 ```
-
----
 
 ### Cat
 
-| Layer | Mean DeltaF × Grad |
-| ----- | ------------------ |
-| 0     | 5.85e-06           |
-| 1     | 1.20e-05           |
-| 2     | 1.48e-05           |
-| 3     | 1.54e-05           |
-| 4     | 1.77e-05           |
-| 5     | 1.78e-05           |
-
 Peak:
 
 ```text
 Layer 5
 ```
 
----
-
 ### School Bus
-
-| Layer | Mean DeltaF × Grad |
-| ----- | ------------------ |
-| 0     | 4.65e-05           |
-| 1     | 8.02e-05           |
-| 2     | 8.83e-05           |
-| 3     | 9.02e-05           |
-| 4     | 9.40e-05           |
-| 5     | 8.66e-05           |
 
 Peak:
 
@@ -290,158 +295,765 @@ Layer 4
 
 ## Interpretation
 
-Across all examples, the strongest prompt-conditioned features that also influence the final mask appear in:
+Across all examples:
 
 ```text
 Layers 4–5
 ```
 
-This suggests that while prompt information is injected early, the final segmentation decision depends most strongly on prompt-conditioned representations formed in the deeper Multimodal Decoder layers.
+contain the strongest prompt-conditioned features that influence the final segmentation output.
+
+Prompt information is injected early but becomes most mask-relevant in the deepest fusion layers.
 
 ---
 
-# 4. Head Importance Analysis
+# 4. True Head Importance Analysis
 
 ## Method
 
-Gradient-based head importance was computed for:
+True per-head attribution was computed directly from:
 
 ```text
-transformer.encoder.layers.0–5.self_attn
-transformer.encoder.layers.0–5.cross_attn_image
+[B, H, T, D]
 ```
 
-The importance score used was:
+attention outputs captured before output projection.
+
+This avoids the pseudo-head approximation used in earlier experiments.
+
+Importance was computed using:
 
 ```text
-grad_x_activation
+grad × activation
 ```
 
-Important note:
-
-This is currently a gradient-based **head-slot importance proxy**, not exact pre-output-projection head attribution.
+for each attention head.
 
 ---
 
-## School Bus
+## Results
 
-### Top Heads
+Across all three examples:
 
-| Rank | Head                            |
-| ---- | ------------------------------- |
-| 1    | Layer 0 cross_attn_image Head 7 |
-| 2    | Layer 1 self_attn Head 0        |
-| 3    | Layer 0 cross_attn_image Head 2 |
-| 4    | Layer 1 self_attn Head 7        |
-| 5    | Layer 0 cross_attn_image Head 5 |
-
-### Layer Importance
-
-| Module                   | Importance |
-| ------------------------ | ---------- |
-| Layer 0 cross_attn_image | 8.97e-07   |
-| Layer 1 self_attn        | 8.25e-07   |
-| Layer 3 self_attn        | 7.51e-07   |
-
-### Interpretation
-
-For the school bus example, prompt-to-image fusion is extremely important.
-
-Several Layer 0 cross-attention heads dominate the ranking, suggesting that prompt information is injected strongly into the visual grid very early.
-
----
-
-## Cat
-
-### Top Heads
-
-| Rank | Head                     |
-| ---- | ------------------------ |
-| 1    | Layer 1 self_attn Head 7 |
-| 2    | Layer 1 self_attn Head 0 |
-| 3    | Layer 1 self_attn Head 4 |
-| 4    | Layer 1 self_attn Head 1 |
-| 5    | Layer 3 self_attn Head 6 |
-
-### Layer Importance
-
-| Module            | Importance |
-| ----------------- | ---------- |
-| Layer 1 self_attn | 1.65e-07   |
-| Layer 3 self_attn | 1.43e-07   |
-| Layer 2 self_attn | 1.36e-07   |
-
-### Interpretation
-
-For the cat example, Layer 1 self-attention is the dominant mechanism.
-
-Prompt information appears to be injected first and then propagated through the visual grid using self-attention.
-
----
-
-## Dog
-
-### Top Heads
-
-| Rank | Head                            |
-| ---- | ------------------------------- |
-| 1    | Layer 1 self_attn Head 7        |
-| 2    | Layer 1 self_attn Head 0        |
-| 3    | Layer 1 self_attn Head 4        |
-| 4    | Layer 3 self_attn Head 6        |
-| 5    | Layer 0 cross_attn_image Head 7 |
-
-### Layer Importance
-
-| Module            | Importance |
-| ----------------- | ---------- |
-| Layer 1 self_attn | 2.25e-07   |
-| Layer 3 self_attn | 1.99e-07   |
-| Layer 5 self_attn | 1.88e-07   |
-
-### Interpretation
-
-The dog result is very similar to the cat result.
-
-The same Layer 1 self-attention heads dominate the ranking, suggesting that animal-related prompts may rely on a common set of self-attention heads after prompt information has entered the visual stream.
-
----
-
-# Overall Interpretation
-
-Taken together, the experiments suggest the following processing pipeline inside the SAM3 Multimodal Decoder:
+The most important heads were dominated by:
 
 ```text
-Layer 0 cross_attn_image
-        ↓
+self_attn
+```
+
+rather than:
+
+```text
+cross_attn_image
+```
+
+The most consistently important heads included:
+
+```text
+Layer 5 self_attn Head 6
+Layer 4 self_attn Head 0
+Layer 3 self_attn Head 1
+Layer 1 self_attn Head 1
+```
+
+These heads appeared repeatedly across:
+
+```text
+School Bus
+Cat
+Dog
+```
+
+---
+
+## Interpretation
+
+Prompt information is injected through cross-attention but much of the important processing happens inside self-attention.
+
+The strongest prompt-relevant computations occur after prompt information has already entered the visual stream.
+
+---
+
+# 5. DETR Decoder Query Mapping
+
+## Method
+
+Gradients were backpropagated from the final selected mask into:
+
+```text
+hs
+```
+
+the DETR decoder output.
+
+For each decoder query:
+
+```text
+query_score(q) = || d(mask) / d(hs_q) ||
+```
+
+was computed.
+
+The responsible query was defined as:
+
+```text
+q* = argmax query_score(q)
+```
+
+---
+
+## Results
+
+| Image      | Responsible Query |
+| ---------- | ----------------- |
+| School Bus | 144               |
+| Cat        | 144               |
+| Dog        | 144               |
+
+This result was independently verified for all three examples.
+
+---
+
+## Interpretation
+
+The selected final mask is consistently produced by:
+
+```text
+query 144
+```
+
+for the tested examples.
+
+This identifies the decoder query responsible for final mask generation.
+
+---
+
+# 6. DETR Decoder Cross-Attention
+
+## Method
+
+The following modules were traced:
+
+```text
+transformer.decoder.layers.0–5.cross_attn
+```
+
+Observed shapes:
+
+```text
+Q = (1, 8, 201, 32)
+K = (1, 8, 5184, 32)
+V = (1, 8, 5184, 32)
+```
+
+Therefore:
+
+```text
+Query 144
+↓
+reads 72 × 72 fusion-memory tokens
+```
+
+---
+
+## Results
+
+### School Bus
+
+Main attended region:
+
+```text
+row 35–45
+col 51–56
+```
+
+### Cat
+
+Main attended region:
+
+```text
+row 35–38
+col 55
+```
+
+### Dog
+
+Main attended region:
+
+```text
+row 48–50
+col 52–53
+```
+
+---
+
+## Interpretation
+
+Query 144 is not tied to a fixed location.
+
+Instead, it dynamically attends to image-specific regions of the fusion-memory grid.
+
+This establishes the bridge:
+
+```text
+Fusion Memory
+↓
+Query 144
+↓
+Final Mask
+```
+
+---
+
+# 7. Pathway Consistency Analysis
+
+## Objective
+
+Determine whether:
+
+```text
+Prompt-important fusion tokens
+```
+
+are the same tokens that:
+
+```text
+Query 144 actually reads
+```
+
+---
+
+## Method
+
+Compared:
+
+```text
+DeltaF × Gradient
+```
+
+with:
+
+```text
+Query-144 attention map
+```
+
+using:
+
+```text
+Cosine Similarity
+Pearson Correlation
+Top-k Overlap
+```
+
+---
+
+## Results
+
+### School Bus
+
+Best alignment:
+
+```text
+Layer 5
+Cosine = 0.240
+Correlation = 0.215
+Top-20 Overlap = 40%
+```
+
+### Dog
+
+Best alignment:
+
+```text
+Layer 4
+Cosine = 0.305
+Correlation = 0.240
+```
+
+### Cat
+
+Alignment remained weak across all layers.
+
+---
+
+## Interpretation
+
+For school bus and dog, the decoder reads a subset of the prompt-important fusion tokens, especially in later layers.
+
+For cat, the relationship is much weaker.
+
+Therefore:
+
+> The pathway consistency experiment provides correlational evidence that some prompt-conditioned, mask-relevant fusion tokens are subsequently read by the mask-producing DETR decoder query.
+
+However, this alone does not establish causality.
+
+---
+
+# 8. Causal Ablation Analysis
+
+## Objective
+
+Test whether prompt-conditioned fusion tokens are actually required for the final mask.
+
+---
+
+## Method
+
+Tokens were ranked using:
+
+```text
+DeltaF × Gradient
+```
+
+Top-k tokens were removed before the DETR decoder.
+
+The resulting mask was compared against:
+
+```text
+Random token ablation
+```
+
+using:
+
+```text
+Mask score drop
+IoU drop
+```
+
+---
+
+## Results
+
+Small ablations:
+
+```text
+k = 50, 100, 200
+```
+
+produced weak effects.
+
+Large ablations:
+
+```text
+k = 500
+```
+
+produced consistent effects.
+
+### School Bus
+
+```text
+Layer 1
+Score-drop advantage = 0.00929
+```
+
+### Dog
+
+```text
+Layer 3
+Score-drop advantage = 0.00569
+```
+
+### Cat
+
+```text
+Layer 3
+Score-drop advantage = 0.01035
+```
+
+---
+
+## Interpretation
+
+Removing a sufficiently large set of high DeltaF×Gradient tokens damages the final mask more than removing random tokens.
+
+The effect is distributed across many fusion tokens rather than concentrated in a tiny hotspot.
+
+This provides causal evidence that prompt-conditioned fusion tokens contribute to final mask generation.
+
+---
+
+# 9. Decoder Attention Ablation
+
+## Objective
+
+The causal ablation experiment demonstrated that prompt-conditioned fusion tokens contribute to final mask generation.
+
+However, that experiment does not directly test whether the fusion-memory tokens read by the DETR decoder are themselves important.
+
+The goal of this experiment was therefore:
+
+> Do the fusion-memory tokens attended by Query 144 causally contribute to the final segmentation mask?
+
+---
+
+## Method
+
+The DETR decoder attention maps generated earlier were used.
+
+For each decoder layer:
+
+```text
+decoder_layer_i_query144_attn.npy
+```
+
+the fusion-memory tokens were ranked according to Query 144 attention.
+
+For each layer:
+
+1. Select the top-k attended fusion tokens.
+2. Remove those tokens before the DETR decoder.
+3. Re-run SAM3.
+4. Compare against random token ablation of the same size.
+
+The following values were evaluated:
+
+```text
+k = 50
+k = 100
+k = 200
+k = 500
+```
+
+Mask score drop and IoU drop were compared against random-token ablation.
+
+---
+
+## Results
+
+### School Bus
+
+Strongest result:
+
+```text
+Layer 5
+k = 500
+
+Top Attention Score Drop = 0.00643
+Random Score Drop        = 0.00268
+Advantage                = 0.00375
+```
+
+### Dog
+
+Strongest result:
+
+```text
+Layer 5
+k = 500
+
+Top Attention Score Drop = 0.00276
+Random Score Drop        = 0.00145
+Advantage                = 0.00131
+```
+
+### Cat
+
+Strongest result:
+
+```text
+Layer 5
+k = 500
+
+Top Attention Score Drop = 0.00200
+Random Score Drop        = 0.00100
+Advantage                = 0.00100
+```
+
+---
+
+## Cross-Example Interpretation
+
+Across all three examples:
+
+```text
+School Bus
+Dog
+Cat
+```
+
+the strongest effects occur for:
+
+```text
+k = 500
+```
+
+while smaller ablations:
+
+```text
+k = 50
+k = 100
+k = 200
+```
+
+produce weaker and less consistent effects.
+
+This indicates that decoder attention is distributed across a broader set of fusion-memory tokens rather than concentrated in only a few highly attended locations.
+
+---
+
+## Interpretation
+
+This experiment directly tests whether the fusion tokens attended by Query 144 matter for final mask generation.
+
+The results show:
+
+1. Removing highly attended fusion tokens damages the final mask more than random ablation.
+2. The effect is strongest when larger groups of attended tokens are removed.
+3. Decoder attention is not merely a visualization artifact.
+4. The fusion-memory tokens read by Query 144 contribute to final segmentation behavior.
+
+This establishes:
+
+```text
+Prompt-important tokens matter
+✓
+
+Decoder-read tokens matter
+✓
+```
+
+and strengthens the prompt-to-mask pathway established by previous experiments.
+
+---
+
+## Conclusion
+
+The Decoder Attention Ablation experiment provides causal evidence that the fusion-memory tokens read by Query 144 contribute to final mask generation.
+
+The strongest effects occur in later decoder layers and become most visible when larger groups of attended tokens are removed.
+
+The results therefore support the interpretation that:
+
+```text
+Query 144
+↓
+reads fusion-memory tokens
+↓
+uses those tokens
+↓
+produces the final segmentation mask
+```
+
+rather than merely assigning attention without functional importance.
+
+# 10. Query 144 Dominance Analysis
+
+## Objective
+
+The DETR query-tracing experiments identified:
+
+```text
+Query 144
+```
+
+as the query responsible for generating the final selected mask.
+
+The remaining question was:
+
+> Is Query 144 only slightly more important than the remaining queries, or does it completely dominate mask generation?
+
+---
+
+## Method
+
+For each image:
+
+```text
+School Bus
+Cat
+Dog
+```
+
+the query-gradient scores were ranked.
+
+For every decoder query:
+
+```text
+query_score(q) = || d(mask) / d(hs_q) ||
+```
+
+was computed.
+
+The top-ranked query, second-ranked query, and number of non-zero queries were recorded.
+
+---
+
+## Results
+
+### School Bus
+
+```text
+Top Query = 144
+Gradient  = 5.71e-03
+
+Second Query = 125
+Gradient      = 0
+
+Non-Zero Queries = 1
+```
+
+### Cat
+
+```text
+Top Query = 144
+Gradient  = 1.02e-03
+
+Second Query = 125
+Gradient      = 0
+
+Non-Zero Queries = 1
+```
+
+### Dog
+
+```text
+Top Query = 144
+Gradient  = 1.69e-03
+
+Second Query = 125
+Gradient      = 0
+
+Non-Zero Queries = 1
+```
+
+---
+
+## Cross-Example Interpretation
+
+The same pattern appeared for all three examples:
+
+| Image      | Top Query | Non-Zero Queries |
+| ---------- | --------- | ---------------- |
+| School Bus | 144       | 1                |
+| Cat        | 144       | 1                |
+| Dog        | 144       | 1                |
+
+The responsible query remained identical despite:
+
+```text
+Different prompts
+Different object categories
+Different image content
+```
+
+This suggests that Query 144 behaves as a specialized object query used by SAM3 for the selected segmentation output.
+
+---
+
+## Interpretation
+
+The DETR decoder contains:
+
+```text
+200 object queries
+```
+
+but the final selected mask in all tested examples is routed through:
+
+```text
+Query 144
+```
+
+and no measurable gradient reaches the remaining queries.
+
+This means that Query 144 completely dominates mask generation for the tested examples.
+
+The prompt-to-mask pathway can therefore be simplified as:
+
+```text
+Prompt
+↓
+Fusion-memory representations
+↓
+Query 144
+↓
+Final segmentation mask
+```
+
+rather than:
+
+```text
+Prompt
+↓
+Many DETR queries
+↓
+Final mask
+```
+
+for the examples analyzed.
+
+---
+
+## Conclusion
+
+The Query 144 Dominance Analysis shows that:
+
+1. Query 144 is consistently responsible for the selected final mask.
+2. No other decoder query receives measurable gradient from the final mask objective.
+3. Query 144 completely dominates mask generation for the school bus, cat, and dog examples.
+4. Query 144 acts as the primary decoder readout mechanism through which prompt-conditioned fusion representations influence the final segmentation output.
+
+This result strengthens the interpretation that Query 144 is the key decoder component connecting fusion-memory representations to final mask generation in the tested examples.
+
+# Final Prompt-to-Mask Pathway
+
+Combining all experiments yields the following picture:
+
+```text
+Prompt
+↓
+Cross-Attention
+↓
 Prompt information enters image tokens
-        ↓
-Layers 1–3 self_attn
-        ↓
-Prompt information is propagated and refined
-        ↓
-Layers 4–5
-        ↓
-Prompt-conditioned representation becomes most relevant to final mask prediction
+↓
+Self-Attention
+↓
+Prompt information propagates through image tokens
+↓
+Deep fusion layers (Layers 4–5)
+↓
+Prompt-conditioned mask-relevant fusion representations
+↓
+DETR Query 144
+↓
+Cross-attention to selected fusion-memory tokens
+↓
+Final segmentation mask
 ```
 
-The strongest findings are:
+---
+
+# Main Conclusions
 
 1. Prompt information directly modifies image-token representations.
 2. Prompt-induced feature changes accumulate throughout the Multimodal Decoder.
-3. The most mask-relevant prompt-conditioned representations occur in Layers 4–5.
-4. Layer 0 cross-attention appears responsible for prompt injection.
-5. Layer 1 self-attention appears responsible for propagating prompt information through the visual grid.
-6. Similar head patterns appear across dog and cat examples, while school bus relies more heavily on direct prompt-to-image fusion.
+3. The most mask-relevant prompt-conditioned features occur in Layers 4–5.
+4. Self-attention plays a dominant role in refining prompt information after prompt injection.
+5. The final selected mask is consistently produced by DETR decoder query 144 for the tested examples.
+6. Query 144 reads image-dependent regions of the 72×72 fusion-memory grid.
+7. Some prompt-conditioned fusion tokens overlap with the tokens read by query 144.
+8. Removing large groups of high DeltaF×Gradient tokens degrades the mask more than random token removal.
+9. Prompt-conditioned fusion representations therefore contribute causally to final mask generation.
+10. Fusion-memory tokens attended by Query 144 contribute causally to final mask generation.
+11. Query 144 completely dominates final-mask generation for the school bus, cat, and dog examples.
 
-Overall, the results support a two-stage mechanism:
+Overall, the results support the following mechanism inside SAM3:
 
 ```text
 Prompt Injection
         ↓
 Prompt Propagation
         ↓
-Mask-Relevant Prompt-Conditioned Representation
+Prompt-Conditioned Fusion Representation
+        ↓
+Query 144 Readout
+        ↓
+Decoder-Attended Fusion Tokens
+        ↓
+Final Segmentation Mask
 ```
 
-inside the SAM3 Multimodal Decoder.
+```
+```

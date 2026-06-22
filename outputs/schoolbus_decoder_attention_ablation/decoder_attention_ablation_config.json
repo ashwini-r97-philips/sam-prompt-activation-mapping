@@ -1,0 +1,19 @@
+{
+  "image": "test_images/schoolbus.jpg",
+  "prompt": "yellow school bus",
+  "decoder_attn_dir": "outputs/schoolbus_detr_decoder_cross_attention/detr_decoder_cross_attention",
+  "out_dir": "outputs/schoolbus_decoder_attention_ablation",
+  "device": "cuda:0",
+  "target_mask_index": 0,
+  "query_index": null,
+  "k": [
+    50,
+    100,
+    200,
+    500
+  ],
+  "random_trials": 3,
+  "ablation_mode": "zero",
+  "seed": 456,
+  "resolved_query_index": 144
+}

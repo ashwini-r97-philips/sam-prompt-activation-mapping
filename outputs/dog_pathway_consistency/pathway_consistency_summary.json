@@ -1,0 +1,15 @@
+{
+  "query_index": 144,
+  "delta_grad_dir": "outputs/dog_deltaf_grad/mm_grad",
+  "decoder_attn_dir": "outputs/dog_detr_decoder_cross_attention/detr_decoder_cross_attention",
+  "out_dir": "outputs/dog_pathway_consistency",
+  "num_layers": 6,
+  "top_k": [
+    20,
+    50,
+    100,
+    200
+  ],
+  "mean_cosine_normalized": 0.1857986785622404,
+  "mean_pearson_normalized": 0.1149240471702657
+}

@@ -1,0 +1,17 @@
+{
+  "image": "test_images/cat.jpg",
+  "prompt": "cat",
+  "delta_grad_dir": "outputs/cat_deltaf_grad/mm_grad",
+  "out_dir": "outputs/cat_causal_ablation_klarge",
+  "device": "cuda:0",
+  "target_mask_index": 0,
+  "k": [
+    50,
+    100,
+    200,
+    500
+  ],
+  "random_trials": 3,
+  "ablation_mode": "zero",
+  "seed": 123
+}

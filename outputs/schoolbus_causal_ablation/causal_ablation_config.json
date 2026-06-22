@@ -1,0 +1,14 @@
+{
+  "image": "test_images/schoolbus.jpg",
+  "prompt": "yellow school bus",
+  "delta_grad_dir": "outputs/schoolbus_deltaf_grad/mm_grad",
+  "out_dir": "outputs/schoolbus_causal_ablation",
+  "device": "cuda:0",
+  "target_mask_index": 0,
+  "k": [
+    20
+  ],
+  "random_trials": 2,
+  "ablation_mode": "zero",
+  "seed": 123
+}

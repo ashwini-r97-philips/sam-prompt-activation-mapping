@@ -1,0 +1,17 @@
+{
+  "image": "test_images/dog.jpg",
+  "prompt": "dog",
+  "delta_grad_dir": "outputs/dog_deltaf_grad/mm_grad",
+  "out_dir": "outputs/dog_causal_ablation_klarge",
+  "device": "cuda:0",
+  "target_mask_index": 0,
+  "k": [
+    50,
+    100,
+    200,
+    500
+  ],
+  "random_trials": 3,
+  "ablation_mode": "zero",
+  "seed": 123
+}

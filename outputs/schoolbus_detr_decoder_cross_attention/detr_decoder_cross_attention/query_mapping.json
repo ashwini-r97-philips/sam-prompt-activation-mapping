@@ -1,0 +1,27 @@
+{
+  "image": "test_images/schoolbus.jpg",
+  "prompt": "yellow school bus",
+  "target_mask_index": 0,
+  "auto_responsible_query": 144,
+  "used_query_index": 144,
+  "hs_shape": [
+    6,
+    1,
+    200,
+    256
+  ],
+  "masks_logits_shape": [
+    1,
+    1,
+    853,
+    1280
+  ],
+  "target_modules": [
+    "transformer.decoder.layers.0.cross_attn",
+    "transformer.decoder.layers.1.cross_attn",
+    "transformer.decoder.layers.2.cross_attn",
+    "transformer.decoder.layers.3.cross_attn",
+    "transformer.decoder.layers.4.cross_attn",
+    "transformer.decoder.layers.5.cross_attn"
+  ]
+}

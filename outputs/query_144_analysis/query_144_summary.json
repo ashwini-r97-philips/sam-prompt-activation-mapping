@@ -1,0 +1,38 @@
+[
+  {
+    "example": "schoolbus",
+    "top_query": 144,
+    "top_query_l2_grad": 0.0057114260271191,
+    "second_query": 125,
+    "second_query_l2_grad": 0.0,
+    "dominance_ratio_top1_vs_top2": 5711426027.1191,
+    "num_queries": 200,
+    "num_nonzero_queries": 1,
+    "csv_path": "outputs/schoolbus_decoder_query_trace/decoder_query_trace/query_gradient_scores.csv",
+    "plot_path": "outputs/query_144_analysis/schoolbus_top_queries.png"
+  },
+  {
+    "example": "cat",
+    "top_query": 144,
+    "top_query_l2_grad": 0.0010188991436734,
+    "second_query": 125,
+    "second_query_l2_grad": 0.0,
+    "dominance_ratio_top1_vs_top2": 1018899143.6734,
+    "num_queries": 200,
+    "num_nonzero_queries": 1,
+    "csv_path": "outputs/cat_decoder_query_trace/decoder_query_trace/query_gradient_scores.csv",
+    "plot_path": "outputs/query_144_analysis/cat_top_queries.png"
+  },
+  {
+    "example": "dog",
+    "top_query": 144,
+    "top_query_l2_grad": 0.001685888855718,
+    "second_query": 125,
+    "second_query_l2_grad": 0.0,
+    "dominance_ratio_top1_vs_top2": 1685888855.718,
+    "num_queries": 200,
+    "num_nonzero_queries": 1,
+    "csv_path": "outputs/dog_decoder_query_trace/decoder_query_trace/query_gradient_scores.csv",
+    "plot_path": "outputs/query_144_analysis/dog_top_queries.png"
+  }
+]
