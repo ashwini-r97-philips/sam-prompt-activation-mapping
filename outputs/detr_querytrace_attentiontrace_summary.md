@@ -392,39 +392,244 @@ The decoder therefore appears to reuse the same object-query slot while adapting
 
 ---
 
-# Overall Interpretation
+# Experiment 3: Dataset-Scale Validation of DETR Decoder Query Mapping
 
-The DETR decoder experiments establish the second half of the prompt-to-mask pathway.
+## Objective
 
-The earlier Multimodal Decoder experiments showed:
+The initial DETR decoder query tracing experiments were performed on three individual examples:
+
+* Cat
+* Dog
+* School Bus
+
+Although these experiments consistently identified Query 144 as the responsible decoder query, it remained unclear whether this observation generalized beyond a few selected images.
+
+The objective of this experiment was therefore to evaluate the robustness of the decoder-query assignment across a larger dataset.
+
+---
+
+## Dataset
+
+A total of **39 images** were evaluated:
+
+| Class      | Number of Images |
+| ---------- | ---------------: |
+| Cat        |               13 |
+| Dog        |               13 |
+| School Bus |               13 |
+
+Each image was paired with its corresponding text prompt:
+
+```text
+cat
+dog
+yellow school bus
+```
+
+The same gradient-based decoder query tracing procedure was applied independently to every image.
+
+---
+
+# Method
+
+For every image:
+
+1. A forward pass was performed using the corresponding text prompt.
+2. The selected segmentation mask was used as the backward target.
+3. Gradients were propagated to the DETR decoder output tensor:
+
+```text
+hs
+```
+
+4. The gradient norm of every decoder query was computed:
+
+```text
+query_score(q)
+=
+|| d(mask) / d(hs_q) ||
+```
+
+5. The responsible query was defined as:
+
+```text
+q*
+=
+argmax query_score(q)
+```
+
+In addition to identifying the responsible query, the number of decoder queries receiving non-zero gradient was also recorded.
+
+---
+
+# Results
+
+## Overall Query Distribution
+
+Across all **39 images**:
+
+| Query | Number of Images |
+| ----: | ---------------: |
+|   144 |               34 |
+|    25 |                2 |
+|    32 |                1 |
+|    87 |                1 |
+|   104 |                1 |
+
+Therefore:
+
+```text
+Query 144
+=
+34 / 39 images
+=
+87.2%
+```
+
+---
+
+## Per-Class Results
+
+### Cat
+
+| Responsible Query | Images |
+| ----------------: | -----: |
+|               144 |     12 |
+|                25 |      1 |
+
+Query 144 frequency:
+
+```text
+12 / 13
+=
+92.3%
+```
+
+---
+
+### Dog
+
+| Responsible Query | Images |
+| ----------------: | -----: |
+|               144 |     11 |
+|                25 |      1 |
+|               104 |      1 |
+
+Query 144 frequency:
+
+```text
+11 / 13
+=
+84.6%
+```
+
+---
+
+### School Bus
+
+| Responsible Query | Images |
+| ----------------: | -----: |
+|               144 |     11 |
+|                32 |      1 |
+|                87 |      1 |
+
+Query 144 frequency:
+
+```text
+11 / 13
+=
+84.6%
+```
+
+---
+
+## Query Sparsity
+
+For every image:
+
+```text
+num_nonzero_queries = 1
+```
+
+This means that, for all 39 evaluated examples, the selected segmentation mask was associated with exactly one decoder query receiving non-zero gradient.
+
+No example exhibited multiple simultaneously active decoder queries.
+
+---
+
+# Interpretation
+
+The dataset-scale evaluation refines the conclusions drawn from the initial three-image study.
+
+The earlier experiments suggested that:
+
+```text
+Selected mask
+↓
+Query 144
+```
+
+The larger evaluation shows a more accurate picture:
+
+```text
+Selected mask
+↓
+Single dominant decoder query
+```
+
+with Query 144 acting as the dominant readout query in the vast majority of cases.
+
+Specifically:
+
+* Query 144 explains **87.2%** of all evaluated examples.
+* Alternative decoder queries (25, 32, 87 and 104) appear only in a small number of images.
+* Every evaluated image is explained by exactly one decoder query.
+
+This suggests that the DETR decoder behaves as a sparse object-query routing mechanism in which the final selected mask is produced by a single dominant decoder query.
+
+Query 144 appears to represent the primary object-query used by SAM3 for segmentation, although it is not universal.
+
+---
+
+# Updated Overall Interpretation
+
+The original three-image experiments established the existence of a decoder query responsible for the selected mask.
+
+The dataset-scale analysis strengthens this conclusion by demonstrating that:
 
 ```text
 Prompt
 ↓
-Fusion-memory representations
+Multimodal Decoder
+↓
+Fusion Memory
+↓
+Single Dominant DETR Decoder Query
+↓
+Final Segmentation Mask
 ```
 
-The DETR decoder experiments show:
+is a consistent computational pathway across a larger collection of images.
 
-```text
-Fusion-memory representations
-↓
-Decoder query 144
-↓
-Cross-attention to selected fusion-memory tokens
-↓
-Final segmentation mask
-```
+Rather than claiming that Query 144 always generates the final mask, the results support the more general conclusion that:
+
+* each selected mask is routed through **one dominant decoder query**, and
+* Query 144 is the dominant readout query for approximately **87%** of the evaluated dataset.
+
+This transforms the original observation from an anecdotal result into a statistically supported property of the analyzed examples.
+
+---
 
 The key findings are:
 
-1. The final selected mask is consistently produced by decoder query 144 across all tested examples.
-2. Query 144 reads directly from the 72×72 fusion-memory grid produced by the Multimodal Decoder.
-3. The specific memory tokens attended by query 144 depend on the image and object being segmented.
-4. Query 144 acts as the decoder bridge between fusion-memory representations and final mask generation.
-5. The same query can segment different object categories while attending to different regions of the fusion-memory grid.
+1. Every evaluated segmentation mask is produced by a **single dominant DETR decoder query**.
+2. Query 144 is the dominant decoder query in **34 out of 39 evaluated images (87.2%)**, making it the primary readout query in the analyzed dataset.
+3. Alternative decoder queries (Queries 25, 32, 87 and 104) appear in a small number of images, indicating that the dominant decoder query is image-dependent rather than universally fixed.
+4. The dominant decoder query reads directly from the 72×72 fusion-memory grid produced by the Multimodal Decoder.
+5. The specific fusion-memory tokens attended by the dominant decoder query depend on the image content and object being segmented.
+6. The same decoder query (most commonly Query 144) can segment different object categories while attending to different spatial regions of the fusion-memory grid.
 
-Together, the Multimodal Decoder and DETR Decoder analyses provide the following pathway:
+Together, the Multimodal Decoder and DETR Decoder analyses provide the following computational pathway:
 
 ```text
 Prompt
@@ -433,7 +638,8 @@ Prompt modifies fusion-memory representations
 ↓
 Prompt-conditioned fusion tokens
 ↓
-Decoder query 144
+Single dominant DETR decoder query
+(typically Query 144)
 ↓
 Cross-attention over selected fusion-memory tokens
 ↓
@@ -443,27 +649,44 @@ Final segmentation mask
 At this stage, the DETR decoder analysis establishes:
 
 ```text
-Which query produces the final mask?
-→ Query 144
+Which decoder query produces the selected mask?
+→ One dominant decoder query
+→ Query 144 in 87.2% of evaluated examples
 
 Which fusion-memory tokens are read?
-→ Image-dependent subset of the 72×72 fusion grid
+→ An image-dependent subset of the 72×72 fusion-memory grid
 
 How does the decoder connect fusion memory to the mask?
-→ Through query 144 cross-attention
+→ Through cross-attention performed by the dominant decoder query
 ```
 
-The DETR decoder experiments therefore identify the mechanism by which fusion-memory representations are consumed to generate the final segmentation output.
+The dataset-scale evaluation further demonstrates that this routing mechanism is highly sparse. Across all 39 evaluated images, exactly one decoder query received non-zero gradient for the selected mask, indicating that SAM3 consistently routes each segmentation output through a single decoder query rather than distributing responsibility across multiple queries.
 
-Importantly, this decoder analysis alone does not prove that the attended fusion tokens are exactly the same tokens modified by the prompt. It establishes the readout pathway from fusion memory to mask generation.
+The DETR decoder experiments therefore identify the mechanism by which fusion-memory representations are consumed to generate the final segmentation output. They also show that while Query 144 is the dominant readout query for most examples, SAM3 can dynamically select alternative decoder queries for certain images, suggesting that the decoder contains a small set of specialized object-query slots rather than relying on a universally fixed query.
 
-The subsequent pathway-consistency and causal-ablation experiments answer the next question:
+Importantly, the decoder analysis alone does not prove that the attended fusion-memory tokens are exactly the same tokens modified by the text prompt. Instead, it establishes the **decoder-side readout pathway** from fusion memory to mask generation.
+
+The subsequent pathway-consistency, causal-ablation, fused decoder-attention, and token-to-mask experiments address the next question:
 
 ```text
 Are the prompt-conditioned fusion tokens
-actually used by query 144,
+actually used by the dominant decoder query,
 and do they causally contribute
-to the final mask?
+to the final segmentation mask?
 ```
 
-Those experiments complete the prompt-to-mask analysis by linking Multimodal Decoder representations to DETR decoder readout and final segmentation behavior.
+Together, these experiments complete the prompt-to-mask analysis by linking:
+
+```text
+Prompt
+↓
+Multimodal Decoder
+↓
+Prompt-conditioned fusion memory
+↓
+Dominant DETR decoder query
+↓
+Final segmentation mask
+```
+
+through both attribution and causal intervention experiments.

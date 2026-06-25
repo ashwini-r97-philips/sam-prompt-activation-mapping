@@ -1038,6 +1038,7 @@ Final segmentation mask
 9. Prompt-conditioned fusion representations therefore contribute causally to final mask generation.
 10. Fusion-memory tokens attended by Query 144 contribute causally to final mask generation.
 11. Query 144 completely dominates final-mask generation for the school bus, cat, and dog examples.
+12. Cross-layer fused Query-144 attention identifies fusion-memory tokens that causally affect the final mask, especially for schoolbus and dog.
 
 Overall, the results support the following mechanism inside SAM3:
 

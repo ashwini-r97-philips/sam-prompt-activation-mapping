@@ -1,0 +1,40 @@
+example_id,class_name,image,prompt,responsible_query,top_query,top_query_l2_grad,num_nonzero_queries
+cat_000,cat,test_images/cat.jpg,cat,144,144,0.0010188991436734,1
+cat_001,cat,test_images/cat1.jpg,cat,144,144,0.0144431358203291,1
+cat_002,cat,test_images/cat2.jpg,cat,144,144,0.0055061988532543,1
+cat_003,cat,test_images/cat3.jpg,cat,144,144,0.0042684711515903,1
+cat_004,cat,test_images/cat4.jpg,cat,144,144,0.0064231818541884,1
+cat_005,cat,test_images/cat5.jpg,cat,144,144,0.0027615998405963,1
+cat_006,cat,test_images/cat6.jpg,cat,144,144,0.0061829797923564,1
+cat_007,cat,test_images/cat7.jpg,cat,144,144,0.0055645266547799,1
+cat_008,cat,test_images/cat8.jpg,cat,144,144,0.0145485494285821,1
+cat_009,cat,test_images/cat9.jpg,cat,144,144,0.015932397916913,1
+cat_010,cat,test_images/cat10.jpg,cat,144,144,0.0075233848765492,1
+cat_011,cat,test_images/cat11.jpg,cat,144,144,0.0050319069996476,1
+cat_012,cat,test_images/cat12.jpg,cat,25,25,0.0021888120099902,1
+dog_000,dog,test_images/dog.jpg,dog,144,144,0.001685888855718,1
+dog_001,dog,test_images/dog1.jpg,dog,104,104,0.001049009966664,1
+dog_002,dog,test_images/dog2.jpg,dog,25,25,0.0017155073583126,1
+dog_003,dog,test_images/dog3.jpg,dog,144,144,0.0074583669193089,1
+dog_004,dog,test_images/dog4.jpeg,dog,144,144,0.003000452183187,1
+dog_005,dog,test_images/dog5.jpg,dog,144,144,0.0029372700955718,1
+dog_006,dog,test_images/dog6.jpg,dog,144,144,0.0071298130787909,1
+dog_007,dog,test_images/dog7.jpg,dog,144,144,0.0040782010182738,1
+dog_008,dog,test_images/dog8.jpeg,dog,144,144,0.0037058996967971,1
+dog_009,dog,test_images/dog9.jpg,dog,144,144,0.0029652758967131,1
+dog_010,dog,test_images/dog10.jpg,dog,144,144,0.0037413157988339,1
+dog_011,dog,test_images/dog11.jpg,dog,144,144,0.0033361217938363,1
+dog_012,dog,test_images/dog12.jpg,dog,144,144,0.0032649340573698,1
+schoolbus_000,schoolbus,test_images/schoolbus.jpg,yellow school bus,144,144,0.0057114260271191,1
+schoolbus_001,schoolbus,test_images/schoolbus1.jpg,yellow school bus,144,144,0.0137077523395419,1
+schoolbus_002,schoolbus,test_images/schoolbus2.jpg,yellow school bus,144,144,0.0109888967126607,1
+schoolbus_003,schoolbus,test_images/schoolbus3.jpg,yellow school bus,144,144,0.0118208713829517,1
+schoolbus_004,schoolbus,test_images/schoolbus4.jpg,yellow school bus,32,32,0.0017311535775661,1
+schoolbus_005,schoolbus,test_images/schoolbus5.jpg,yellow school bus,144,144,0.0062201069667935,1
+schoolbus_006,schoolbus,test_images/schoolbus6.jpeg,yellow school bus,144,144,0.0057294610887765,1
+schoolbus_007,schoolbus,test_images/schoolbus7.jpg,yellow school bus,144,144,0.0143403485417366,1
+schoolbus_008,schoolbus,test_images/schoolbus8.jpg,yellow school bus,144,144,0.0066155255772173,1
+schoolbus_009,schoolbus,test_images/schoolbus9.jpg,yellow school bus,144,144,0.008770634420216,1
+schoolbus_010,schoolbus,test_images/schoolbus10.jpg,yellow school bus,144,144,0.0115921013057231,1
+schoolbus_011,schoolbus,test_images/schoolbus11.jpg,yellow school bus,144,144,0.0122108338400721,1
+schoolbus_012,schoolbus,test_images/schoolbus12.jpg,yellow school bus,87,87,8.576676191296428e-05,1

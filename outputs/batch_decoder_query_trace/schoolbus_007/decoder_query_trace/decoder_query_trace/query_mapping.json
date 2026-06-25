@@ -1,0 +1,22 @@
+{
+  "image": "test_images/schoolbus7.jpg",
+  "prompt": "yellow school bus",
+  "target_mask_index": 0,
+  "responsible_query": 144,
+  "hs_shape": [
+    6,
+    1,
+    200,
+    256
+  ],
+  "masks_logits_shape": [
+    1,
+    1,
+    1200,
+    1964
+  ],
+  "mapping": {
+    "final_target_mask_index": 0,
+    "decoder_query_q_star": 144
+  }
+}

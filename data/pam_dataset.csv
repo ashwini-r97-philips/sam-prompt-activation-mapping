@@ -1,0 +1,40 @@
+example_id,image,prompt,class_name
+cat_000,test_images/cat.jpg,cat,cat
+cat_001,test_images/cat1.jpg,cat,cat
+cat_002,test_images/cat2.jpg,cat,cat
+cat_003,test_images/cat3.jpg,cat,cat
+cat_004,test_images/cat4.jpg,cat,cat
+cat_005,test_images/cat5.jpg,cat,cat
+cat_006,test_images/cat6.jpg,cat,cat
+cat_007,test_images/cat7.jpg,cat,cat
+cat_008,test_images/cat8.jpg,cat,cat
+cat_009,test_images/cat9.jpg,cat,cat
+cat_010,test_images/cat10.jpg,cat,cat
+cat_011,test_images/cat11.jpg,cat,cat
+cat_012,test_images/cat12.jpg,cat,cat
+dog_000,test_images/dog.jpg,dog,dog
+dog_001,test_images/dog1.jpg,dog,dog
+dog_002,test_images/dog2.jpg,dog,dog
+dog_003,test_images/dog3.jpg,dog,dog
+dog_004,test_images/dog4.jpeg,dog,dog
+dog_005,test_images/dog5.jpg,dog,dog
+dog_006,test_images/dog6.jpg,dog,dog
+dog_007,test_images/dog7.jpg,dog,dog
+dog_008,test_images/dog8.jpeg,dog,dog
+dog_009,test_images/dog9.jpg,dog,dog
+dog_010,test_images/dog10.jpg,dog,dog
+dog_011,test_images/dog11.jpg,dog,dog
+dog_012,test_images/dog12.jpg,dog,dog
+schoolbus_000,test_images/schoolbus.jpg,yellow school bus,schoolbus
+schoolbus_001,test_images/schoolbus1.jpg,yellow school bus,schoolbus
+schoolbus_002,test_images/schoolbus2.jpg,yellow school bus,schoolbus
+schoolbus_003,test_images/schoolbus3.jpg,yellow school bus,schoolbus
+schoolbus_004,test_images/schoolbus4.jpg,yellow school bus,schoolbus
+schoolbus_005,test_images/schoolbus5.jpg,yellow school bus,schoolbus
+schoolbus_006,test_images/schoolbus6.jpeg,yellow school bus,schoolbus
+schoolbus_007,test_images/schoolbus7.jpg,yellow school bus,schoolbus
+schoolbus_008,test_images/schoolbus8.jpg,yellow school bus,schoolbus
+schoolbus_009,test_images/schoolbus9.jpg,yellow school bus,schoolbus
+schoolbus_010,test_images/schoolbus10.jpg,yellow school bus,schoolbus
+schoolbus_011,test_images/schoolbus11.jpg,yellow school bus,schoolbus
+schoolbus_012,test_images/schoolbus12.jpg,yellow school bus,schoolbus
